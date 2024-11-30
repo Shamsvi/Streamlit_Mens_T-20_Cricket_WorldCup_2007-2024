@@ -272,51 +272,54 @@ elif section == "Dataset Overview":
 
 elif section == "Distribution of Key Numeric Features":
     st.subheader("Distribution of Key Numeric Features")
-    st.write("These plots provide insights into match competitiveness and team performance. The first histogram shows the distribution of match margins, where lower margins indicate closely contested games and higher margins point to dominant victories. The second histogram displays Team 1's average batting rankings, helping to assess their overall batting strength. Together, these visualizations highlight the balance between teams and offer a snapshot of performance trends.")
-
-    # Colorblind-friendly colors
-    colorblind_friendly_colors = ['#0072B2', '#D55E00']
+    st.write(
+        "These plots provide insights into match competitiveness and team performance. "
+        "The first histogram shows the distribution of match margins, where lower margins indicate closely contested games "
+        "and higher margins point to dominant victories. The second histogram displays Team 1's average batting rankings, "
+        "helping to assess their overall batting strength. Together, these visualizations highlight the balance between teams "
+        "and offer a snapshot of performance trends."
+    )
 
     # Bar Plot 1: Distribution of Match Margin
     fig_margin = px.histogram(
-        wc_final_data_df, 
-        x='Margin', 
-        nbins=20, 
-        title='Distribution of Match Margin',
-        labels={'x': 'Margin', 'y': 'Frequency'},
-        template='plotly_white'
+        wc_final_data_df,
+        x="Margin",
+        nbins=20,
+        title="Distribution of Match Margin",
+        labels={"x": "Margin", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
     )
     fig_margin.update_traces(
-        marker_color=colorblind_friendly_colors[0],  # Use colorblind-friendly color
-        marker_line_color='black', 
+        marker_line_color="black",  # Add black edges to bars
         marker_line_width=1.5
     )
     fig_margin.update_layout(
-        xaxis_title='Margin',
-        yaxis_title='Frequency',
-        width=600,  
-        height=400
+        xaxis_title="Margin",
+        yaxis_title="Frequency",
+        width=600,
+        height=400,
     )
 
     # Bar Plot 2: Distribution of Team1 Avg Batting Ranking
     fig_batting_ranking = px.histogram(
-        wc_final_data_df, 
-        x='Team1 Avg Batting Ranking', 
-        nbins=20, 
-        title='Distribution of Team1 Avg Batting Ranking',
-        labels={'x': 'Batting Ranking', 'y': 'Frequency'},
-        template='plotly_white'
+        wc_final_data_df,
+        x="Team1 Avg Batting Ranking",
+        nbins=20,
+        title="Distribution of Team1 Avg Batting Ranking",
+        labels={"x": "Batting Ranking", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
     )
     fig_batting_ranking.update_traces(
-        marker_color=colorblind_friendly_colors[1],  # Use colorblind-friendly color
-        marker_line_color='black', 
+        marker_line_color="black",  # Add black edges to bars
         marker_line_width=1.5
     )
     fig_batting_ranking.update_layout(
-        xaxis_title='Batting Ranking',
-        yaxis_title='Frequency',
-        width=600,  
-        height=400
+        xaxis_title="Batting Ranking",
+        yaxis_title="Frequency",
+        width=600,
+        height=400,
     )
 
     # Display plots side by side
@@ -340,72 +343,110 @@ elif section == "Distribution of Key Numeric Features":
 
 elif section == "Distribution of Ranking Differences":
     st.subheader("Distribution of Ranking Differences")
-    st.write("The 2 histograms show the distribution of batting and bowling ranking differences between Team 1 and Team 2.The x-axis represents the ranking difference, while the y-axis shows the frequency of occurrences. A higher frequency at lower differences suggests that most matches have been between teams with similar rankings, while a higher frequency at larger differences indicates matches with greater disparities in rankings. ")
-    # Plot 1: Distribution of Batting Ranking Difference with black edges
+    st.write(
+        "The 2 histograms show the distribution of batting and bowling ranking differences between Team 1 and Team 2. "
+        "The x-axis represents the ranking difference, while the y-axis shows the frequency of occurrences. "
+        "A higher frequency at lower differences suggests that most matches have been between teams with similar rankings, "
+        "while a higher frequency at larger differences indicates matches with greater disparities in rankings."
+    )
+
+    # Histogram for Batting Ranking Difference
     fig_batting_ranking_diff = px.histogram(
-        wc_final_data_df, 
-        x='Batting Ranking Difference', 
-        nbins=20, 
-        title='Distribution of Batting Ranking Difference',
-        labels={'x': 'Batting Ranking Difference', 'y': 'Frequency'},
-        template='plotly_white'
+        wc_final_data_df,
+        x="Batting Ranking Difference",
+        nbins=20,
+        title="Distribution of Batting Ranking Difference",
+        labels={"x": "Batting Ranking Difference", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
     )
-    fig_batting_ranking_diff.update_traces(marker_line_color='black', marker_line_width=1.5)
+    fig_batting_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
     fig_batting_ranking_diff.update_layout(
-        xaxis_title='Batting Ranking Difference',
-        yaxis_title='Frequency',
-        width=600,  
-        height=400
+        xaxis_title="Batting Ranking Difference",
+        yaxis_title="Frequency",
+        width=600,
+        height=400,
     )
+
+    # Histogram for Bowling Ranking Difference
     fig_bowling_ranking_diff = px.histogram(
-        wc_final_data_df, 
-        x='Bowling Ranking Difference', 
-        nbins=20, 
-        title='Distribution of Bowling Ranking Difference',
-        labels={'x': 'Bowling Ranking Difference', 'y': 'Frequency'},
-        template='plotly_white'
+        wc_final_data_df,
+        x="Bowling Ranking Difference",
+        nbins=20,
+        title="Distribution of Bowling Ranking Difference",
+        labels={"x": "Bowling Ranking Difference", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
     )
-    fig_bowling_ranking_diff.update_traces(marker_line_color='black', marker_line_width=1.5)
+    fig_bowling_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
     fig_bowling_ranking_diff.update_layout(
-        xaxis_title='Bowling Ranking Difference',
-        yaxis_title='Frequency',
-        width=600,  
-        height=400
+        xaxis_title="Bowling Ranking Difference",
+        yaxis_title="Frequency",
+        width=600,
+        height=400,
     )
+
+    # Display histograms side by side
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(fig_batting_ranking_diff, use_container_width=True)
     with col2:
         st.plotly_chart(fig_bowling_ranking_diff, use_container_width=True)
-    #Line plot
-    st.write("The line plot tracks the changes in batting and bowling ranking differences over time. The x-axis represents the match year, and the y-axis shows the ranking difference.This plot helps visualize how the competitiveness between teams has evolved over time, highlighting trends in batting and bowling strength disparities. ")
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=wc_final_data_df['Match Year'],
-        y=wc_final_data_df['Batting Ranking Difference'],
-        mode='lines',
-        name='Batting Ranking Difference',
-        line=dict(color='coral'),
-        hovertext=wc_final_data_df.apply(lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1),  # Adding team names in hover text
-        hoverinfo='text+y'
-    ))
-    fig.add_trace(go.Scatter(
-        x=wc_final_data_df['Match Year'],
-        y=wc_final_data_df['Bowling Ranking Difference'],
-        mode='lines',
-        name='Bowling Ranking Difference',
-        line=dict(color='purple', dash='dash'),
-        hovertext=wc_final_data_df.apply(lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1),  # Adding team names in hover text
-        hoverinfo='text+y'
-    ))
-    fig.update_layout(
-        title='Batting and Bowling Ranking Differences Between Team 1 and Team 2 Over Time',
-        xaxis_title='Match Year',
-        yaxis_title='Ranking Difference',
-        legend_title='Ranking Type',
-        hovermode='x unified'
+
+    # Line plot for ranking differences over time
+    st.write(
+        "The line plot tracks the changes in batting and bowling ranking differences over time. "
+        "The x-axis represents the match year, and the y-axis shows the ranking difference. "
+        "This plot helps visualize how the competitiveness between teams has evolved over time, "
+        "highlighting trends in batting and bowling strength disparities."
     )
+
+    fig = go.Figure()
+
+    # Batting Ranking Difference Line
+    fig.add_trace(
+        go.Scatter(
+            x=wc_final_data_df["Match Year"],
+            y=wc_final_data_df["Batting Ranking Difference"],
+            mode="lines",
+            name="Batting Ranking Difference",
+            line=dict(color="rgb(68, 1, 84)"),  # Viridis palette color
+            hovertext=wc_final_data_df.apply(
+                lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
+            ),
+            hoverinfo="text+y",
+        )
+    )
+
+    # Bowling Ranking Difference Line
+    fig.add_trace(
+        go.Scatter(
+            x=wc_final_data_df["Match Year"],
+            y=wc_final_data_df["Bowling Ranking Difference"],
+            mode="lines",
+            name="Bowling Ranking Difference",
+            line=dict(color="rgb(33, 145, 140)", dash="dash"),  # Another Viridis color
+            hovertext=wc_final_data_df.apply(
+                lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
+            ),
+            hoverinfo="text+y",
+        )
+    )
+
+    # Update layout for the line plot
+    fig.update_layout(
+        title="Batting and Bowling Ranking Differences Between Team 1 and Team 2 Over Time",
+        xaxis_title="Match Year",
+        yaxis_title="Ranking Difference",
+        legend_title="Ranking Type",
+        hovermode="x unified",
+        template="plotly_white",
+    )
+
+    # Display the line plot
     st.plotly_chart(fig)
+
+
 
 
 
@@ -524,8 +565,7 @@ elif section == "Matches":
 
 elif section == "Wins - Total No. of Wins by Each Team":
     st.subheader("Wins - Total No. of Wins by Each Team")
-    st.write("In this section, we analyze team performance in the T20 World Cup through various visualizations. First, a bar chart highlights the total wins by each team, providing a clear comparison of the top performers in the tournament. Next, a geospatial plot illustrates the distribution of these wins across different countries, offering a geographic perspective on team success. Following this, a scatter plot examines the match margins, showcasing by how many runs each team won and identifying the losing teams in each case. Finally, a horizontal bar chart displays the total titles won by each team, with hover functionality that reveals the exact final match dates when teams secured their victories. Together, these visualizations offer a comprehensive view of team dominance, performance patterns, and geographic success in the T20 World Cup.")
-    
+    st.write("In this section, we analyze team performance in the T20 World Cup through various visualizations...")
 
     # Function to extract numeric values for margins
     def extract_numeric(value):
@@ -555,18 +595,18 @@ elif section == "Wins - Total No. of Wins by Each Team":
 
     # Count wins per team
     win_counts = wc_final_data_df['Winner'].value_counts().reset_index()
-    win_counts.columns = ['Team', 'Wins']  # Rename columns for clarity
+    win_counts.columns = ['Team', 'Wins']
 
-    # Bar Plot for Wins
+    # Bar Plot for Wins with Viridis palette
     fig_bar_wins = px.bar(
-        win_counts, 
-        x='Team', 
-        y='Wins', 
+        win_counts,
+        x='Team',
+        y='Wins',
         labels={'Wins': 'Number of Wins', 'Team': 'Team'},
-        text='Wins',  
+        text='Wins',
         title='Number of Wins by Country (Teams)',
-        color='Wins',  
-        color_continuous_scale='Viridis'
+        color='Wins',
+        color_continuous_scale='Viridis'  # Use Viridis palette
     )
 
     fig_bar_wins.update_layout(
@@ -608,7 +648,7 @@ elif section == "Wins - Total No. of Wins by Each Team":
     country_wins = wc_final_data_df['Country'].value_counts().reset_index()
     country_wins.columns = ['Country', 'Wins']
 
-    # Choropleth map for total wins
+    # Choropleth map for total wins with Viridis palette
     fig_geo_wins = px.choropleth(
         country_wins,
         locations='Country',
@@ -617,8 +657,7 @@ elif section == "Wins - Total No. of Wins by Each Team":
         hover_name='Country',
         hover_data=['Wins'],
         title='Total Wins by Country (Teams)',
-        color_continuous_scale='Viridis'
-        
+        color_continuous_scale='Viridis'  # Use Viridis palette
     )
 
     fig_geo_wins.update_geos(
@@ -640,41 +679,34 @@ elif section == "Wins - Total No. of Wins by Each Team":
     # Add the Losing Team column
     wc_final_data_df['Losing Team'] = wc_final_data_df.apply(determine_losing_team, axis=1)
 
-    # Scatter Plot for margins
+    # Scatter Plot for margins with Viridis palette
     wc_final_data_df['Margin (Runs)'] = wc_final_data_df['Margin'].apply(extract_runs_correct)
     wc_final_data_df['Margin (Wickets)'] = wc_final_data_df['Margin'].apply(extract_wickets_correct)
 
-    # Select relevant columns, including 'Winner', 'Losing Team', and 'Margin (Runs)' or 'Margin (Wickets)'
     plot_data = wc_final_data_df[['Winner', 'Losing Team', 'Margin (Runs)', 'Margin (Wickets)']].dropna(subset=['Winner', 'Losing Team'])
-
-    # Create 'Margin Type' column to differentiate between runs and wickets
     plot_data['Margin Type'] = plot_data.apply(lambda row: 'Runs' if pd.notnull(row['Margin (Runs)']) else 'Wickets', axis=1)
-
-    # Create a 'Margin Numeric' column that combines 'Margin (Runs)' and 'Margin (Wickets)'
     plot_data['Margin Numeric'] = plot_data.apply(lambda row: row['Margin (Runs)'] if pd.notnull(row['Margin (Runs)']) else row['Margin (Wickets)'], axis=1)
 
-    # Update the scatter plot to reflect the margin by runs or wickets
     fig_win_margin = px.scatter(
         plot_data,
         x='Winner',
         y='Margin Numeric',
         title='Match Margin by Winner (Scatter Plot)',
         labels={'Margin Numeric': 'Match Margin', 'Winner': 'Winning Team'},
-        color='Margin Type',  # Color by whether the margin was in Runs or Wickets
+        color='Margin Numeric',
         hover_data={
             'Winner': True,
             'Margin Numeric': True,
             'Losing Team': True,
-            'Margin Type': True  # Show the type of margin in hover info
-        }
+            'Margin Type': True
+        },
+        color_continuous_scale='Viridis'  # Use Viridis palette
     )
 
-    # Display the scatter plot and data frame side by side
     col3, col4 = st.columns(2)
     with col3:
         st.plotly_chart(fig_win_margin, use_container_width=True)
     with col4:
-    # Exclude 'Margin Numeric' column
         st.dataframe(plot_data.drop(columns=['Margin Numeric']), use_container_width=True)
 
     # Add Match Date column by parsing year, month, and day
@@ -683,44 +715,32 @@ elif section == "Wins - Total No. of Wins by Each Team":
 
     # List of specific final match dates
     final_dates = [
-        '2007-09-24',  # September 24, 2007
-        '2009-06-21',  # June 21, 2009
-        '2010-05-16',  # May 16, 2010
-        '2012-10-07',  # October 7, 2012
-        '2014-04-06',  # April 6, 2014
-        '2016-04-03',  # April 3, 2016
-        '2021-11-14',  # November 14, 2021
-        '2022-11-13',  # November 13, 2022
-        '2024-06-29'   # June 29, 2024
+        '2007-09-24', '2009-06-21', '2010-05-16', '2012-10-07',
+        '2014-04-06', '2016-04-03', '2021-11-14', '2022-11-13', '2024-06-29'
     ]
-
     final_dates = pd.to_datetime(final_dates)
 
-    # Filter dataset for final match dates only
     final_matches_df = wc_final_data_df[wc_final_data_df['Match Date'].isin(final_dates)]
-
-    # Aggregate number of titles for each team
     winner_titles = final_matches_df.groupby('Winner')['Match Date'].apply(list).reset_index(name='Final Dates')
     winner_titles['Final Dates'] = winner_titles['Final Dates'].apply(lambda dates: [date.strftime('%Y-%m-%d') for date in dates])
     winner_titles['Titles'] = winner_titles['Final Dates'].apply(len)
 
-    # Sort by number of titles
-    winner_titles = winner_titles.sort_values(by='Titles', ascending=False)
-
     # Horizontal bar chart for titles
     fig_titles = px.bar(
-        winner_titles, 
-        y='Winner', 
-        x='Titles', 
+        winner_titles,
+        y='Winner',
+        x='Titles',
         orientation='h',
         text='Titles',
         hover_data={'Final Dates': True},
         labels={'Titles': 'Number of Titles', 'Winner': 'Team'},
-        title='T20 World Cup Title Holders'
+        title='T20 World Cup Title Holders',
+        color='Titles',
+        color_continuous_scale='Viridis'  # Use Viridis palette
     )
 
-    # Display the title holders bar chart
     st.plotly_chart(fig_titles)
+
 
 
 
@@ -930,34 +950,36 @@ elif section == "Grounds":
 
 elif section == "Team1 vs Team2 Participations and Wins":
     st.subheader("Team1 vs Team2 Participations and Wins")
-    st.write("This section provides an in-depth comparison of Team 1 and Team 2 participation and wins across different years. The bar and line chart illustrates how both teams have participated and performed over the years, with bars representing total participation and lines showing total wins. Additionally, we explore the head-to-head performance between Team 1 and Team 2 in terms of victories. Two stacked bar charts visualize the number of wins each team secured against their counterpart, highlighting the competitive nature of these matchups.")
+    st.write("This section provides an in-depth comparison of Team 1 and Team 2 participation and wins across different years...")
+
     if 'Match Year' not in wc_final_data_df.columns:
         wc_final_data_df['Match Year'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce').dt.year
 
     all_years = pd.Series(range(2007, 2025))
+    
     # Team 1 participation and wins
     team1_participation = wc_final_data_df.groupby(['Match Year', 'Team1']).size().reset_index(name='Total Participation')
     team1_wins = wc_final_data_df[wc_final_data_df['Winner'] == wc_final_data_df['Team1']].groupby('Match Year').size().reset_index(name='Total Wins')
-    # Merging participation and wins for Team 1
     team1_stats = pd.merge(all_years.to_frame(name='Match Year'), team1_participation, how='left', on='Match Year')
     team1_stats = pd.merge(team1_stats, team1_wins, how='left', on='Match Year')
-    team1_stats['Total Participation'] = team1_stats['Total Participation'].fillna(0)  # Fill missing participation with 0
-    team1_stats['Total Wins'] = team1_stats['Total Wins'].fillna(0)  # Fill missing wins with 0
+    team1_stats['Total Participation'] = team1_stats['Total Participation'].fillna(0)
+    team1_stats['Total Wins'] = team1_stats['Total Wins'].fillna(0)
+
     # Team 2 participation and wins
     team2_participation = wc_final_data_df.groupby(['Match Year', 'Team2']).size().reset_index(name='Total Participation')
     team2_wins = wc_final_data_df[wc_final_data_df['Winner'] == wc_final_data_df['Team2']].groupby('Match Year').size().reset_index(name='Total Wins')
-    # Merging participation and wins for Team 2
     team2_stats = pd.merge(all_years.to_frame(name='Match Year'), team2_participation, how='left', on='Match Year')
     team2_stats = pd.merge(team2_stats, team2_wins, how='left', on='Match Year')
-    team2_stats['Total Participation'] = team2_stats['Total Participation'].fillna(0)  
-    team2_stats['Total Wins'] = team2_stats['Total Wins'].fillna(0) 
+    team2_stats['Total Participation'] = team2_stats['Total Participation'].fillna(0)
+    team2_stats['Total Wins'] = team2_stats['Total Wins'].fillna(0)
 
+    # Combined Bar and Line Plot for Team 1 and Team 2
     fig_team1_team2 = go.Figure()
     fig_team1_team2.add_trace(go.Bar(
         x=team1_stats['Match Year'], 
         y=team1_stats['Total Participation'], 
         name='Team 1 Participation', 
-        marker_color='blue',
+        marker_color=px.colors.sequential.Viridis[3],  # Viridis color for Team 1 Participation
         yaxis='y'
     ))
     fig_team1_team2.add_trace(go.Scatter(
@@ -965,14 +987,14 @@ elif section == "Team1 vs Team2 Participations and Wins":
         y=team1_stats['Total Wins'], 
         mode='lines', 
         name='Team 1 Wins', 
-        line=dict(color='red'),
-        yaxis='y2' 
+        line=dict(color=px.colors.sequential.Viridis[6]),  # Viridis color for Team 1 Wins
+        yaxis='y2'
     ))
     fig_team1_team2.add_trace(go.Bar(
         x=team2_stats['Match Year'], 
         y=team2_stats['Total Participation'], 
         name='Team 2 Participation', 
-        marker_color='green',
+        marker_color=px.colors.sequential.Viridis[1],  # Viridis color for Team 2 Participation
         yaxis='y'
     ))
     fig_team1_team2.add_trace(go.Scatter(
@@ -980,9 +1002,10 @@ elif section == "Team1 vs Team2 Participations and Wins":
         y=team2_stats['Total Wins'], 
         mode='lines', 
         name='Team 2 Wins', 
-        line=dict(color='orange'),
-        yaxis='y2'  
+        line=dict(color=px.colors.sequential.Viridis[9]),  # Viridis color for Team 2 Wins
+        yaxis='y2'
     ))
+
     fig_team1_team2.update_layout(
         title='WC Participation (Bar) and Wins (Line) for Team 1 and Team 2 Over The Years',
         xaxis_title='Match Year',
@@ -998,78 +1021,62 @@ elif section == "Team1 vs Team2 Participations and Wins":
         ),
         width=1000,
         height=600,
-        barmode='group',  
+        barmode='group',
         hovermode='closest'
     )
-    st.plotly_chart(fig_team1_team2)
-    #
-    win_counts = all_matches_data_df.groupby(['Winner', 'Team1', 'Team2']).size().reset_index(name='Wins')
+    st.plotly_chart(fig_team1_team2, use_container_width=True)
 
+    # Head-to-Head Wins Analysis
+    win_counts = all_matches_data_df.groupby(['Winner', 'Team1', 'Team2']).size().reset_index(name='Wins')
     win_counts['Hover Text'] = win_counts.apply(lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}<br>Winner: {row['Winner']}<br>Wins: {row['Wins']}", axis=1)
-    color_map = {
-        'India': 'lightblue',
-        'Australia': 'lightgreen',
-        'England': 'lightcoral',
-        'Pakistan': 'lightpink',
-        'South Africa': 'khaki',
-        'Sri Lanka': 'lightsalmon',
-        'West Indies': 'lavender',
-        'Bangladesh': 'lightyellow',
-        'Nepal': 'lightgray',
-        'Zimbabwe': 'lightsteelblue',
-        'Afghanistan': 'peachpuff',
-        'New Zealand': 'powderblue',
-        'Netherlands': 'lightblue',
-        'Scotland': 'lightgreen',
-        'U.S.A.': 'mistyrose',
-        'Ireland': 'lightgreen',
-        'Kenya': 'lightcyan',
-        'Oman': 'lightseagreen',
-        'United Arab Emirates': 'lightgoldenrodyellow',
-        'Hong Kong': 'lightpink',
-        'P.N.G': 'lightcoral',
-        'Canada': 'lavenderblush',
-        'Uganda': 'lightyellow',
-        'No Result': 'whitesmoke',  
-        'Tied': 'lightgrey'
-    }
-    fig_team1_over_team2 = px.bar(win_counts, 
-                x='Team1', 
-                y='Wins', 
-                color='Winner', 
-                title='Wins of Team 1 Against Team 2',
-                labels={'Wins': 'Number of Wins', 'Team1': 'Team 1'},
-                text='Wins',
-                hover_name='Hover Text',
-                color_discrete_map=color_map)
+
+    # Stacked Bar Chart for Wins of Team 1 Against Team 2
+    fig_team1_over_team2 = px.bar(
+        win_counts,
+        x='Team1',
+        y='Wins',
+        color='Winner',
+        title='Wins of Team 1 Against Team 2',
+        labels={'Wins': 'Number of Wins', 'Team1': 'Team 1'},
+        text='Wins',
+        hover_name='Hover Text',
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
     fig_team1_over_team2.update_layout(
         xaxis_title='Team 1',
         yaxis_title='Number of Wins',
         hovermode='closest',
-        barmode='stack',  
-        xaxis_tickangle=-45  
+        barmode='stack',
+        xaxis_tickangle=-45
     )
-    fig_team2_over_team1 = px.bar(win_counts, 
-                x='Team2', 
-                y='Wins', 
-                color='Winner', 
-                title='Wins of Team 2 Against Team 1',
-                labels={'Wins': 'Number of Wins', 'Team2': 'Team 2'},
-                text='Wins',
-                hover_name='Hover Text',
-                color_discrete_map=color_map)  # Use the defined color map
+
+    # Stacked Bar Chart for Wins of Team 2 Against Team 1
+    fig_team2_over_team1 = px.bar(
+        win_counts,
+        x='Team2',
+        y='Wins',
+        color='Winner',
+        title='Wins of Team 2 Against Team 1',
+        labels={'Wins': 'Number of Wins', 'Team2': 'Team 2'},
+        text='Wins',
+        hover_name='Hover Text',
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
     fig_team2_over_team1.update_layout(
         xaxis_title='Team 2',
         yaxis_title='Number of Wins',
         hovermode='closest',
-        barmode='stack',  
-        xaxis_tickangle=-45  
+        barmode='stack',
+        xaxis_tickangle=-45
     )
+
+    # Display the visualizations side by side
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(fig_team1_over_team2, use_container_width=True)
     with col2:
         st.plotly_chart(fig_team2_over_team1, use_container_width=True)
+
 
 
 
