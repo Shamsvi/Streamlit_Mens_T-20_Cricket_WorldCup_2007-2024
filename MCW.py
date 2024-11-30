@@ -273,6 +273,10 @@ elif section == "Dataset Overview":
 elif section == "Distribution of Key Numeric Features":
     st.subheader("Distribution of Key Numeric Features")
     st.write("These plots provide insights into match competitiveness and team performance. The first histogram shows the distribution of match margins, where lower margins indicate closely contested games and higher margins point to dominant victories. The second histogram displays Team 1's average batting rankings, helping to assess their overall batting strength. Together, these visualizations highlight the balance between teams and offer a snapshot of performance trends.")
+
+    # Colorblind-friendly colors
+    colorblind_friendly_colors = ['#0072B2', '#D55E00']
+
     # Bar Plot 1: Distribution of Match Margin
     fig_margin = px.histogram(
         wc_final_data_df, 
@@ -282,14 +286,19 @@ elif section == "Distribution of Key Numeric Features":
         labels={'x': 'Margin', 'y': 'Frequency'},
         template='plotly_white'
     )
-    fig_margin.update_traces(marker_line_color='black', marker_line_width=1.5)
+    fig_margin.update_traces(
+        marker_color=colorblind_friendly_colors[0],  # Use colorblind-friendly color
+        marker_line_color='black', 
+        marker_line_width=1.5
+    )
     fig_margin.update_layout(
         xaxis_title='Margin',
         yaxis_title='Frequency',
         width=600,  
         height=400
     )
-    # Bar Plot 2: Distribution of Team1 Avg Batting Ranking 
+
+    # Bar Plot 2: Distribution of Team1 Avg Batting Ranking
     fig_batting_ranking = px.histogram(
         wc_final_data_df, 
         x='Team1 Avg Batting Ranking', 
@@ -298,13 +307,19 @@ elif section == "Distribution of Key Numeric Features":
         labels={'x': 'Batting Ranking', 'y': 'Frequency'},
         template='plotly_white'
     )
-    fig_batting_ranking.update_traces(marker_line_color='black', marker_line_width=1.5)
+    fig_batting_ranking.update_traces(
+        marker_color=colorblind_friendly_colors[1],  # Use colorblind-friendly color
+        marker_line_color='black', 
+        marker_line_width=1.5
+    )
     fig_batting_ranking.update_layout(
         xaxis_title='Batting Ranking',
         yaxis_title='Frequency',
         width=600,  
         height=400
     )
+
+    # Display plots side by side
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(fig_margin, use_container_width=True)
@@ -410,25 +425,30 @@ elif section == "Distribution of Ranking Differences":
 elif section == "Matches":
     st.subheader("Matches")
     st.write("The Matches section displays the total number of matches played by each team using a bar plot and a geospatial map. The number of matches for each team is calculated by combining their appearances as both Team1 and Team2. The bar plot shows the total number of matches for each team, and a choropleth map visualizes the geographical distribution of matches by mapping teams to their respective countries. Both visualizations are presented side by side to provide insights into the total matches and their geographic spread.")
-    #Bar Plot
+
+    # Calculate total matches for each team
     team1_counts = wc_final_data_df['Team1'].value_counts()
     team2_counts = wc_final_data_df['Team2'].value_counts()
     total_matches = pd.DataFrame({'Team': team1_counts.index, 'Matches': team1_counts.values})
     team2_matches = pd.DataFrame({'Team': team2_counts.index, 'Matches': team2_counts.values})
     total_matches = pd.concat([total_matches, team2_matches], ignore_index=True)
     total_matches = total_matches.groupby('Team', as_index=False).sum()
-    #Bar Plot
-    fig_total_matches = px.bar(total_matches, 
-                x='Team', 
-                y='Matches', 
-                color='Team',  
-                title='Total Matches Played by Each Team',
-                labels={'Matches': 'Number of Matches', 'Team': 'Team'},
-                text='Matches',
-                template='plotly_white',  # Set template to plotly_white
-                color_discrete_sequence=px.colors.qualitative.Plotly)  # Set color palette
 
-    # GEOSPATIAL 
+    # Bar Plot: Total Matches Played by Each Team
+    fig_total_matches = px.bar(
+        total_matches,
+        x='Team',
+        y='Matches',
+        color='Matches',  # Color by Matches
+        title='Total Matches Played by Each Team',
+        labels={'Matches': 'Number of Matches', 'Team': 'Team'},
+        text='Matches',
+        template='plotly_white',  # Set template to plotly_white
+        color_continuous_scale='Viridis'  # Use Viridis palette
+    )
+    fig_total_matches.update_traces(marker_line_color='black', marker_line_width=1.5)
+
+    # Geospatial Visualization: Choropleth Map
     team_country_mapping = {
         'India': 'India',
         'Australia': 'Australia',
@@ -444,7 +464,7 @@ elif section == "Matches":
         'New Zealand': 'New Zealand',
         'Netherlands': 'Netherlands',
         'Scotland': 'United Kingdom',  # Mapping Scotland to United Kingdom
-        'USA': 'United States',  
+        'USA': 'United States',
         'Ireland': 'Ireland',
         'Kenya': 'Kenya',
         'Oman': 'Oman',
@@ -454,33 +474,40 @@ elif section == "Matches":
         'Canada': 'Canada',
         'Uganda': 'Uganda'
     }
+
     # Map teams to their respective countries
     total_matches['Country'] = total_matches['Team'].map(lambda x: team_country_mapping.get(x, 'Unknown'))
 
-    # Create a choropleth map for geospatial distribution of matches
-    fig_geo_total_matches = px.choropleth(total_matches,
-                        locations='Country',  
-                        locationmode='country names',  
-                        color='Matches',  
-                        hover_name='Country',  
-                        hover_data=['Matches'],  
-                        title='Total Matches Played by Each Team',
-                        color_continuous_scale=px.colors.qualitative.Plotly) 
+    # Create a choropleth map
+    fig_geo_total_matches = px.choropleth(
+        total_matches,
+        locations='Country',
+        locationmode='country names',
+        color='Matches',
+        hover_name='Country',
+        hover_data=['Matches'],
+        title='Total Matches Played by Each Team',
+        color_continuous_scale='Viridis'  # Use Viridis palette
+    )
 
-    # Step 6: Customize the layout
+    # Customize the choropleth layout
     fig_geo_total_matches.update_geos(
-        showcoastlines=True,  # Show coastlines
-        coastlinecolor='Black',  # Coastline color
-        landcolor='LightGray',  # Land color
-        countrycolor='Black',  # Country border color
-        showsubunits=True,  # Show subunits (e.g. states)
-        showcountries=True,
-    )     
+        showcoastlines=True,
+        coastlinecolor='Black',
+        landcolor='LightGray',
+        countrycolor='Black',
+        showsubunits=True,
+        showcountries=True
+    )
+
+    # Display plots side by side
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(fig_total_matches, use_container_width=True)
     with col2:
         st.plotly_chart(fig_geo_total_matches, use_container_width=True)
+
+
     
 
 
@@ -539,7 +566,7 @@ elif section == "Wins - Total No. of Wins by Each Team":
         text='Wins',  
         title='Number of Wins by Country (Teams)',
         color='Wins',  
-        color_continuous_scale=px.colors.qualitative.Plotly
+        color_continuous_scale='Viridis'
     )
 
     fig_bar_wins.update_layout(
@@ -590,7 +617,8 @@ elif section == "Wins - Total No. of Wins by Each Team":
         hover_name='Country',
         hover_data=['Wins'],
         title='Total Wins by Country (Teams)',
-        color_continuous_scale=px.colors.qualitative.Plotly
+        color_continuous_scale='Viridis'
+        
     )
 
     fig_geo_wins.update_geos(
@@ -807,7 +835,7 @@ elif section == "Grounds":
                             labels={'Matches': 'Number of Matches', 'Ground': 'Ground'},
                             title= 'Total No. of Matches Played at each Ground',
                             color='Matches',  
-                            color_continuous_scale=px.colors.qualitative.Set1,  
+                            color_continuous_scale='Viridis',
                             text='Matches')  
     fig_grounds_bar.update_layout(
         xaxis_title='Ground',
@@ -820,7 +848,8 @@ elif section == "Grounds":
                         hover_name='Ground',  
                         hover_data=['Country', 'Matches'],  
                         color='Matches', 
-                        color_continuous_scale=px.colors.sequential.Plasma)  
+                        color_continuous_scale='Viridis')  
+    
     fig_grounds.update_geos(
         showcoastlines=True,  
         coastlinecolor='Black',  
@@ -846,7 +875,7 @@ elif section == "Grounds":
     fig_heatmap = px.imshow(ground_winner_pivot,
                             title='Heatmap of Teams and Their Maximum Wins at a Ground',
                             labels={'color': 'Number of Wins'},
-                            color_continuous_scale='RdBu',
+                            color_continuous_scale='Viridis',
                             text_auto=True) 
     fig_heatmap.update_layout(
         xaxis_title='Winning Countries',
@@ -868,7 +897,7 @@ elif section == "Grounds":
         correlation_matrix_filtered,
         title='Correlation Heatmap between Encoded Grounds and Winning Teams',
         labels=dict(x='Winning Teams', y='Grounds', color='Correlation Coefficient'),
-        color_continuous_scale='RdBu',
+        color_continuous_scale='Viridis',
         text_auto=':.2f'  
     )
     fig_corr_heatmap.update_layout(
@@ -1059,9 +1088,9 @@ elif section == "Team1 vs Team2 Participations and Wins":
 
 elif section == "Player Participation":
     st.subheader("Player Participation")
-    st.write("This section provides a comprehensive analysis of player participation trends over the years. Visualizations highlight trends in player participation across different teams and identify the players with the longest participation for each team. Additionally, the section delves into captaincy information, displaying captains with the longest tenure for each team. It also presents insights into the top-performing players by showcasing the players with the most wins for their respective teams, offering a detailed look into the key contributors to their team’s victories.")
+    st.write("This section provides a comprehensive analysis of player participation trends over the years...")
 
-
+    # Calculate player participation trends
     players_by_country = players_df['Team'].value_counts()
     player_participation_trends = players_df.groupby(['Year', 'Team']).size().reset_index(name='Player Count')
     player_distribution = player_participation_trends.pivot_table(index='Year', columns='Team', values='Player Count', fill_value=0)
@@ -1072,39 +1101,45 @@ elif section == "Player Participation":
     player_participation_trends['Player Count'] = player_participation_trends['Player Count'].fillna(0)
 
     # Line chart for player participation trends
-    fig_players = px.line(player_participation_trends, 
-                    x='Year', 
-                    y='Player Count', 
-                    color='Team', 
-                    title='Player Participation Trends Over the Years by Country',
-                    labels={'Player Count': 'Number of Players', 'Year': 'Year'},
-                    template='plotly',
-                    color_discrete_sequence=px.colors.qualitative.Set3)
+    fig_players = px.line(
+        player_participation_trends, 
+        x='Year', 
+        y='Player Count', 
+        color='Team', 
+        title='Player Participation Trends Over the Years by Country',
+        labels={'Player Count': 'Number of Players', 'Year': 'Year'},
+        template='plotly_white',
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
 
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig_players, key="line_plot_participation")
+        st.plotly_chart(fig_players, use_container_width=True)
     with col2:
-        st.dataframe(player_participation_trends, key="dataframe_participation")
+        st.dataframe(player_participation_trends, use_container_width=True)
 
     # Players with the longest participation
     player_participation = players_df.groupby(['Player Name', 'Team'])['Year'].nunique().reset_index(name='Years Participated')
     longest_participation = player_participation.loc[player_participation.groupby('Team')['Years Participated'].idxmax()]
 
     # Bar chart for longest participation
-    fig_longest_participation = px.bar(longest_participation, 
-                    x='Team', 
-                    y='Years Participated', 
-                    color='Player Name', 
-                    title='Player with the Longest Participation for Each Team',
-                    labels={'Years Participated': 'Number of Years', 'Team': 'Team'},
-                    text='Player Name')
+    fig_longest_participation = px.bar(
+        longest_participation, 
+        x='Team', 
+        y='Years Participated', 
+        color='Player Name', 
+        title='Player with the Longest Participation for Each Team',
+        labels={'Years Participated': 'Number of Years', 'Team': 'Team'},
+        text='Player Name',
+        template='plotly_white',
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
 
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig_longest_participation, key="bar_plot_longest_participation")
+        st.plotly_chart(fig_longest_participation, use_container_width=True)
     with col2:
-        st.dataframe(longest_participation, key="dataframe_longest_participation")
+        st.dataframe(longest_participation, use_container_width=True)
 
     # Merging captains_df and players_df to include captaincy information
     if 'Year' in players_df.columns and 'Year' in captains_df.columns:
@@ -1115,15 +1150,17 @@ elif section == "Player Participation":
         longest_captaincy = captain_durations.loc[captain_durations.groupby('Team')['Captaincy Duration'].idxmax()]
 
         # Bar chart for captains with longest durations
-        fig_longest_captains = px.bar(longest_captaincy, 
-                        x='Team', 
-                        y='Captaincy Duration', 
-                        color='Player Name', 
-                        title='Captains with the Longest Duration for Each Team',
-                        labels={'Captaincy Duration': 'Number of Years as Captain', 'Team': 'Team'},
-                        text='Player Name')
-
-
+        fig_longest_captains = px.bar(
+            longest_captaincy, 
+            x='Team', 
+            y='Captaincy Duration', 
+            color='Player Name', 
+            title='Captains with the Longest Duration for Each Team',
+            labels={'Captaincy Duration': 'Number of Years as Captain', 'Team': 'Team'},
+            text='Player Name',
+            template='plotly_white',
+            color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+        )
     else:
         st.write("Error: 'Year' column is missing in either players_df or captains_df.")
 
@@ -1135,23 +1172,27 @@ elif section == "Player Participation":
     top_players_by_wins = player_wins.loc[player_wins.groupby('Team')['Wins'].idxmax()]
 
     # Funnel Plot for players with maximum wins
-    fig_funnel = px.funnel(top_players_by_wins, 
-                        x='Player Name', 
-                        y='Wins', 
-                        color='Team', 
-                        title='Wins by Top Player for Each Team',
-                        labels={'Wins': 'Number of Wins', 'Player Name': 'Player Name'})
+    fig_funnel = px.funnel(
+        top_players_by_wins, 
+        x='Player Name', 
+        y='Wins', 
+        color='Team', 
+        title='Wins by Top Player for Each Team',
+        labels={'Wins': 'Number of Wins', 'Player Name': 'Player Name'},
+        template='plotly_white',
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
 
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig_funnel, key="funnel_plot_max_wins")
+        st.plotly_chart(fig_funnel, use_container_width=True)
     with col2:
-        st.dataframe(top_players_by_wins, key="wins_dataframe_max_wins")
+        st.dataframe(top_players_by_wins, use_container_width=True)
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig_longest_captains, key="captain_bar_plot_longest_duration")
+        st.plotly_chart(fig_longest_captains, use_container_width=True)
     with col2:
-        st.dataframe(longest_captaincy, key="captain_dataframe_longest_duration")
+        st.dataframe(longest_captaincy, use_container_width=True)
 
 
 
@@ -1227,7 +1268,6 @@ elif section == "Search For Your Favourite Teams and Players":
 
     # Process the filtered data
     if not filtered_data.empty:
-        
         filtered_data['Team'] = np.where(filtered_data['Team1'].str.contains(team_name, case=False, na=False), filtered_data['Team1'], filtered_data['Team2'])
         filtered_data['Against'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team2'], filtered_data['Team1'])
 
@@ -1254,13 +1294,13 @@ elif section == "Search For Your Favourite Teams and Players":
 
         filtered_data.rename(columns={'Player Name': 'Captain'}, inplace=True)
 
-        # Plot the scatter plot
+        # Plot the scatter plot with Viridis palette
         fig_scatter = px.scatter(
             filtered_data,
             x='Batting Avg',
             y='Bowling Avg',
             size='Margin Numeric',  # Use 'Margin Numeric' based on runs or wickets
-            color='Ground',
+            color='Margin Numeric',  # Use numeric margin for Viridis palette
             hover_name='Team',
             hover_data={
                 'Year': True,
@@ -1271,11 +1311,12 @@ elif section == "Search For Your Favourite Teams and Players":
                 'Margin Type': True  # Show the type of margin (runs or wickets)
             },
             title=f'Team Performance (Batting vs Bowling Average by Ground) for {team_name}',
-            labels={'Batting Avg': 'Batting Average', 'Bowling Avg': 'Bowling Average', 'Margin Numeric': 'Match Margin', 'Ground': 'Ground'}
+            labels={'Batting Avg': 'Batting Average', 'Bowling Avg': 'Bowling Average', 'Margin Numeric': 'Match Margin'},
+            color_continuous_scale='Viridis'  # Use Viridis palette for continuous data
         )
 
         st.dataframe(filtered_data[['Year', 'Team', 'Against', 'Winner', 'Ground', 'Captain', 'Margin Type', 'Margin Numeric']])
-        st.plotly_chart(fig_scatter)
+        st.plotly_chart(fig_scatter, use_container_width=True)
 
     else:
         st.write("No matches found for the provided input.")
@@ -1311,6 +1352,8 @@ elif section == "Search For Your Favourite Teams and Players":
             st.write("Player not found in the dataset.")
     else:
         st.write("Please enter a player name to search.")
+
+
 
 
 
