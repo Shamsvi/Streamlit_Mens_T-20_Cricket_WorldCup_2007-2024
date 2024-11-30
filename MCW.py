@@ -1168,6 +1168,8 @@ elif section == "Player Participation":
 
 
 
+
+
 elif section == "Search For Your Favourite Teams and Players":
     st.subheader("Look For Your Favourite Teams and Players!")
 
@@ -1175,14 +1177,6 @@ elif section == "Search For Your Favourite Teams and Players":
     players_df = pd.read_csv(players_url)
     wc_final_data_df = pd.read_csv(final_dataset_url)
     captains_df = pd.read_csv(captains_url)
-    cricket_legends_df = pd.read_csv(cricket_legends_url)  # Load cricket legends data
-
-    # Ensure cricket_legends_df contains unique player images
-    cricket_legends_df = cricket_legends_df.drop_duplicates(subset=['folder_name'], keep='first').copy()
-    cricket_legends_df['folder_name'] = cricket_legends_df['folder_name'].str.replace('_', ' ').str.title()
-
-    # Path to local images folder
-    images_folder = "/Users/shamsvibaloonikhan/Desktop/archive/Cricket Legends/Cricket Legends"
 
     # Separate 'Match Date' into 'Day', 'Month', 'Year'
     wc_final_data_df['Match Date'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce')
@@ -1208,22 +1202,18 @@ elif section == "Search For Your Favourite Teams and Players":
 
     # Team search bar
     team_name = st.text_input("Search for a team (optional):")
-    year = st.text_input("Enter the year (optional):")  # Year search bar
+
+    # Year search bar
+    year = st.text_input("Enter the year (optional):")
 
     # Initialize an empty DataFrame for the filtered data
     filtered_data = pd.DataFrame()
 
-    # Apply filters based on user input
+    # Apply filters based on the user's input
     if team_name and year:
         year = int(year)
-        filtered_data_team1 = wc_final_data_df[
-            (wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)) &
-            (wc_final_data_df['Year'] == year)
-        ]
-        filtered_data_team2 = wc_final_data_df[
-            (wc_final_data_df['Team2'].str.contains(team_name, case=False, na=False)) &
-            (wc_final_data_df['Year'] == year)
-        ]
+        filtered_data_team1 = wc_final_data_df[(wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)) & (wc_final_data_df['Year'] == year)]
+        filtered_data_team2 = wc_final_data_df[(wc_final_data_df['Team2'].str.contains(team_name, case=False, na=False)) & (wc_final_data_df['Year'] == year)]
         filtered_data = pd.concat([filtered_data_team1, filtered_data_team2])
     elif team_name:
         filtered_data_team1 = wc_final_data_df[wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)]
@@ -1237,33 +1227,67 @@ elif section == "Search For Your Favourite Teams and Players":
 
     # Process the filtered data
     if not filtered_data.empty:
-        filtered_data['Team'] = np.where(
-            filtered_data['Team1'].str.contains(team_name, case=False, na=False),
-            filtered_data['Team1'],
-            filtered_data['Team2']
-        )
-        filtered_data['Against'] = np.where(
-            filtered_data['Team'] == filtered_data['Team1'],
-            filtered_data['Team2'],
-            filtered_data['Team1']
-        )
-        # Fill missing margin values with 0
+        
+        filtered_data['Team'] = np.where(filtered_data['Team1'].str.contains(team_name, case=False, na=False), filtered_data['Team1'], filtered_data['Team2'])
+        filtered_data['Against'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team2'], filtered_data['Team1'])
+
+        filtered_data['Batting Avg'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team1 Avg Batting Ranking'], filtered_data['Team2 Avg Batting Ranking'])
+        filtered_data['Bowling Avg'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team1 Avg Bowling Ranking'], filtered_data['Team2 Avg Bowling Ranking'])
+
+        # Handle margins for runs and wickets
+        filtered_data['Margin Type'] = np.where(filtered_data['Margin (Runs)'].notna(), 'Runs', 'Wickets')
+        filtered_data['Margin Numeric'] = np.where(filtered_data['Margin (Runs)'].notna(), filtered_data['Margin (Runs)'], filtered_data['Margin (Wickets)'])
+
+        # Fill any missing values in 'Margin Numeric' with 0
         filtered_data['Margin Numeric'] = filtered_data['Margin Numeric'].fillna(0)
 
-        # Display the filtered data
-        st.dataframe(filtered_data[['Year', 'Team', 'Against', 'Winner', 'Ground', 'Margin Type', 'Margin Numeric']])
+        match_count_by_ground = filtered_data.groupby('Ground').size().reset_index(name=f"Number of Matches Played by {team_name}")
+        filtered_data = pd.merge(filtered_data, match_count_by_ground, on='Ground', how='left')
+
+        filtered_data = pd.merge(
+            filtered_data,
+            captains_df[['Team', 'Player Name', 'Year']],
+            left_on=['Team', 'Year'],
+            right_on=['Team', 'Year'],
+            how='left'
+        )
+
+        filtered_data.rename(columns={'Player Name': 'Captain'}, inplace=True)
+
+        # Plot the scatter plot
+        fig_scatter = px.scatter(
+            filtered_data,
+            x='Batting Avg',
+            y='Bowling Avg',
+            size='Margin Numeric',  # Use 'Margin Numeric' based on runs or wickets
+            color='Ground',
+            hover_name='Team',
+            hover_data={
+                'Year': True,
+                'Winner': True,
+                'Against': True,
+                'Captain': True,
+                f"Number of Matches Played by {team_name}": True,
+                'Margin Type': True  # Show the type of margin (runs or wickets)
+            },
+            title=f'Team Performance (Batting vs Bowling Average by Ground) for {team_name}',
+            labels={'Batting Avg': 'Batting Average', 'Bowling Avg': 'Bowling Average', 'Margin Numeric': 'Match Margin', 'Ground': 'Ground'}
+        )
+
+        st.dataframe(filtered_data[['Year', 'Team', 'Against', 'Winner', 'Ground', 'Captain', 'Margin Type', 'Margin Numeric']])
+        st.plotly_chart(fig_scatter)
 
     else:
         st.write("No matches found for the provided input.")
 
-    # Player search bar (independent of team search)
+    # Player search bar, independent of the team search
     st.markdown("##### Search for a Player")
     player_name = st.text_input("Enter the player name:")
 
     # Check if the input player name is in the player_df DataFrame
     if player_name:
         player_data = players_df[players_df['Player Name'].str.contains(player_name, case=False, na=False)]
-
+        
         if not player_data.empty:
             teams = player_data['Team'].unique()
 
@@ -1277,21 +1301,7 @@ elif section == "Search For Your Favourite Teams and Players":
                 st.write(f"**Total Number of Years in Team:** {total_years}")
                 st.write(f"**Year Range in Team:** {year_range}")
 
-                # Check if the player is in the cricket_legends_df
-                legend_data = cricket_legends_df[
-                    cricket_legends_df['folder_name'].str.contains(player_name, case=False, na=False)
-                ]
-                if not legend_data.empty:
-                    st.write("### Player Images:")
-                    for _, row in legend_data.iterrows():
-                        image_path = f"{images_folder}/{row['filename']}"
-                        st.image(image_path, caption=row['folder_name'], width=200)
-
-                # Captaincy information
-                captain_data = captains_df[
-                    (captains_df['Player Name'].str.contains(player_name, case=False, na=False)) &
-                    (captains_df['Team'] == team)
-                ]
+                captain_data = captains_df[captains_df['Player Name'].str.contains(player_name, case=False, na=False) & (captains_df['Team'] == team)]
                 if not captain_data.empty:
                     captain_years = captain_data['Year'].tolist()
                     st.write(f"**Captain for {team} in the following years:** {', '.join(map(str, captain_years))}")
@@ -1301,6 +1311,16 @@ elif section == "Search For Your Favourite Teams and Players":
             st.write("Player not found in the dataset.")
     else:
         st.write("Please enter a player name to search.")
+
+
+
+
+
+
+
+
+
+
 
 
 
