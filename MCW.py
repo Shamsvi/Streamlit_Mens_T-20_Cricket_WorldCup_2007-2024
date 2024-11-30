@@ -192,11 +192,9 @@ section = st.sidebar.selectbox(
         "Welcome",
         "Dataset Overview", #all sections
         "Distribution of Features",
-        "Matches",
-        "Wins - Total No. of Wins by Each Team",
+        "Matches and Wins by each Team",
         "Grounds",
-        "Team1 vs Team2 Participations and Wins",
-        "Player Participation",
+        "Participation",
         "Search For Your Favourite Teams and Players"
     )
 )
@@ -264,10 +262,7 @@ elif section == "Dataset Overview":
 
 
 
-
-
-
-#Distribution of Key Numeric Features
+#Distribution of  Features
 
 elif section == "Distribution of Features":
     st.subheader("Distribution of Key Numeric Features")
@@ -444,28 +439,10 @@ elif section == "Distribution of Features":
 #############################################################################################################################
 
 
+# Matches and Wins by each Team
 
-
-#Distribution of Ranking Differences
-
-
-   
-
-
-
-
-#############################################################################################################################
-
-
-
-
-
-
-
-# Total Matches Played by Each Team
-
-elif section == "Matches":
-    st.subheader("Matches")
+elif section == "Matches and Wins by each Team":
+    st.subheader("Matches and Wins by each Team")
     st.write("The Matches section displays the total number of matches played by each team using a bar plot and a geospatial map. The number of matches for each team is calculated by combining their appearances as both Team1 and Team2. The bar plot shows the total number of matches for each team, and a choropleth map visualizes the geographical distribution of matches by mapping teams to their respective countries. Both visualizations are presented side by side to provide insights into the total matches and their geographic spread.")
 
     # Calculate total matches for each team
@@ -550,21 +527,7 @@ elif section == "Matches":
         st.plotly_chart(fig_geo_total_matches, use_container_width=True)
 
 
-    
 
-
-
-
-
-#############################################################################################################################
-
-
-
-
-
-#Total Wins by Each Team
-
-elif section == "Wins - Total No. of Wins by Each Team":
     st.subheader("Wins - Total No. of Wins by Each Team")
     st.write("In this section, we analyze team performance in the T20 World Cup through various visualizations...")
 
@@ -947,9 +910,9 @@ elif section == "Grounds":
 
 
 
-#Team1 vs Team2 Participations and Wins
+#Participation
 
-elif section == "Team1 vs Team2 Participations and Wins":
+elif section == "Participation":
     st.subheader("Team1 vs Team2 Participations and Wins")
     st.write("This section provides an in-depth comparison of Team 1 and Team 2 participation and wins across different years...")
 
@@ -1079,22 +1042,6 @@ elif section == "Team1 vs Team2 Participations and Wins":
         st.plotly_chart(fig_team2_over_team1, use_container_width=True)
 
 
-
-
-
-
-
-#############################################################################################################################
-
-
-
-
-
-
-#Players
-
-
-elif section == "Player Participation":
     st.subheader("Player Participation")
     st.write("This section provides a comprehensive analysis of player participation trends over the years...")
 
