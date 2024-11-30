@@ -189,7 +189,7 @@ st.sidebar.title("Navigation")
 section = st.sidebar.selectbox(
     "Go to Section",
     (
-        "Welcome",
+        "Welcome!",
         "Dataset Overview", #all sections
         "Distribution of Features",
         "Matches and Wins by each Team",
@@ -207,7 +207,7 @@ section = st.sidebar.selectbox(
 
 #############################################################################################################################
 
-if section == "Welcome":
+if section == "Welcome!":
      st.subheader('Cricket Fever: Data Edition') 
      st.image("icc_cricket .png", use_container_width=True)
      st.markdown("""
