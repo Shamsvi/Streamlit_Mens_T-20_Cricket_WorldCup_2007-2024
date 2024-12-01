@@ -26,8 +26,6 @@ captains_df = pd.read_csv(captains_url)
 cricket_legends_df = pd.read_csv(cricket_legends_url)
 updated_wc_final_data_df = pd.read_csv(updated_wc_final_data_df_url)
 
-# App Title
-st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
 
 
 
@@ -211,6 +209,9 @@ section = st.sidebar.selectbox(
 #############################################################################################################################
 
 if section == "Welcome!":
+     #App Title
+     st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
+     
      st.subheader('Cricket Fever: Data Edition') 
      st.image("icc_cricket .png", use_container_width=True)
      st.markdown("""
