@@ -16,6 +16,7 @@ players_url = 'https://raw.githubusercontent.com/Shamsvi/CMSE-830/main/MidtermPo
 final_dataset_url = 'https://raw.githubusercontent.com/Shamsvi/CMSE-830/main/MidtermPorject/wc_final_dataset.csv'
 captains_url = 'https://raw.githubusercontent.com/Shamsvi/CMSE-830/main/MidtermPorject/all_captains.csv'
 cricket_legends_url = 'https://raw.githubusercontent.com/Shamsvi/CMSE-830/main/MidtermPorject/cricket_legends.csv'
+updated_wc_final_data_df_url = 'https://raw.githubusercontent.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/main/updated_wc_final_data_df.csv'
 
 # Load the datasets from the URLs
 all_matches_data_df = pd.read_csv(matches_url)
@@ -23,6 +24,8 @@ players_df = pd.read_csv(players_url)
 wc_final_data_df = pd.read_csv(final_dataset_url)
 captains_df = pd.read_csv(captains_url)
 cricket_legends_df = pd.read_csv(cricket_legends_url)
+updated_wc_final_data_df = pd.read_csv(updated_wc_final_data_df_url)
+
 # App Title
 st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
 
