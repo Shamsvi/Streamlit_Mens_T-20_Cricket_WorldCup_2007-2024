@@ -184,6 +184,48 @@ if 'Team1 Avg Bowling Ranking' in wc_final_data_df.columns and 'Team2 Avg Bowlin
 
 #############################################################################################################################
 
+# Documentation Section
+with st.expander("📖 How to Navigate This App"):
+    st.markdown("""
+    ## Welcome to the ICC Men's T20 World Cup App!
+
+    This app is designed to provide **cricket enthusiasts** and **data science aficionados** with an engaging and insightful experience. Whether you’re here to relive glorious matches or dive into predictive analytics, this app has something for everyone!
+
+    ### 🔍 Two Aspects of This App:
+    1. **🎭 Fan Favorites (User Interface)**  
+       This section is tailored for cricket fans who want to explore:
+       - **Matches and Wins by each Team**: Dive into performance stats of your favorite teams across matches.
+       - **Grounds**: Gain insights into match outcomes based on specific venues.
+       - **Participation**: Uncover trends in player participation across the years.
+       - **Search For Your Favourite Teams and Players**: Quickly search and explore details about your beloved teams or players.
+
+       Perfect for fans who want to relive the excitement of cricket or analyze historical performances in a simple, visual way.
+
+    2. **🧪 Data Wizardry (Data Science Interface)**  
+       This section is for data enthusiasts who want to:
+       - **Distribution of Features**: Visualize and understand the distribution of key features in the dataset.
+       - **Feature Factory**: Explore advanced feature engineering insights that power predictions.
+       - **Predictor's Playground**: Experiment with machine learning models, view their predictions, and see which team might win the next World Cup!
+
+       Aimed at users who love working with data and want to see the science behind cricket analytics.
+
+    ### 🏏 How to Use the App:
+    - Use the **sidebar** to switch between the two sections: 🎭 Fan Favorites and 🧪 Data Wizardry.
+    - Each section has its own unique features, designed for specific audiences:
+        - If you’re a **cricket fan**, start with **Fan Favorites** to explore match stats, player data, and more.
+        - If you’re a **data science enthusiast**, head to **Data Wizardry** to play with data visualizations and predictive models.
+    - You can easily toggle between sections and features from the sidebar.
+
+    ### 🐻 What Makes This App Special?
+    - Combines **cricket insights** and **data science** in one interactive platform.
+    - Simple, intuitive navigation makes it accessible to everyone.
+    - Advanced predictions provide a glimpse into which team might dominate the next T20 World Cup!
+
+    Start exploring now and uncover the magic of cricket through data and visuals. Enjoy!
+    """)
+
+
+#############################################################################################################################
 
 # Sidebar
 st.sidebar.title("Explore the App")
