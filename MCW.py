@@ -249,10 +249,10 @@ if section_selector == ui_name:
         ui_name,
         [
             "Welcome!",
-            "Matches and Wins by each Team",
-            "Grounds",
-            "Participation",
-            "Search For Your Favourite Teams and Players"
+            "Team Battles",
+            "Ground Chronicles",
+            "Player Glory",
+            "Search Magic"
         ]
     )
 
@@ -264,9 +264,10 @@ elif section_selector == ds_name:
         ds_name,
         [
             "Welcome!",
-            "Distribution of Features",
-            "Feature Factory",
-            "Predictor's Playground"
+            "About the Data",
+            "Cricket Stats",
+            "Data Insights",
+            "Make Predictions"
         ]
     )
 
@@ -327,9 +328,6 @@ elif ui_section == "Dataset Overview":
 
 
 
-
-
-
 #############################################################################################################################
 
 
@@ -349,10 +347,15 @@ elif ui_section == "Dataset Overview":
 
 # Matches and Wins by each Team
 
-elif ui_section == "Matches and Wins by each Team":
-    st.subheader("Matches and Wins by each Team")
-    st.write("The Matches section displays the total number of matches played by each team using a bar plot and a geospatial map. The number of matches for each team is calculated by combining their appearances as both Team1 and Team2. The bar plot shows the total number of matches for each team, and a choropleth map visualizes the geographical distribution of matches by mapping teams to their respective countries. Both visualizations are presented side by side to provide insights into the total matches and their geographic spread.")
+elif ui_section == "Team Battles":
+    st.subheader("Team Battles")
+    st.markdown("""
+    Welcome to the **Matches and Wins by Each Team** section—a place where cricket history comes alive! 🏏
 
+    Here, you’ll find out how many matches each team has played over the years and where they’ve played them. 
+    We’ve got a colorful **bar chart** that shows the total matches for every team. Want to know where your favorite 
+    team has battled it out? Check out the interactive **map**, which highlights the countries where matches were played.
+    """)
     # Calculate total matches for each team
     team1_counts = wc_final_data_df['Team1'].value_counts()
     team2_counts = wc_final_data_df['Team2'].value_counts()
@@ -437,8 +440,11 @@ elif ui_section == "Matches and Wins by each Team":
 
 
     st.subheader("Wins - Total No. of Wins by Each Team")
-    st.write("In this section, we analyze team performance in the T20 World Cup through various visualizations...")
-
+    st.markdown("""
+    Here we see who’s been crushing it on the field with a chart that shows the **total wins for each team**. 
+    Want to know which countries are the real champs? We’ve got another **map** that paints the picture of 
+    victories across the globe.
+    """)
     # Function to extract numeric values for margins
     def extract_numeric(value):
         match = re.search(r'\d+', str(value))
@@ -549,6 +555,11 @@ elif ui_section == "Matches and Wins by each Team":
         st.plotly_chart(fig_geo_wins, use_container_width=True)
 
     # Add the Losing Team column
+    st.markdown("""
+    Ever wondered how big a team’s win was—whether they won by runs or wickets? Our **scatter plot** shows just that, 
+    giving you an exciting way to dive into the details of every victory. Plus, there’s a handy table if you want 
+    to explore specific match results.
+    """)
     wc_final_data_df['Losing Team'] = wc_final_data_df.apply(determine_losing_team, axis=1)
 
     # Scatter Plot for margins with Viridis palette
@@ -622,14 +633,11 @@ elif ui_section == "Matches and Wins by each Team":
 
 
 
-
-
-
 #Total Matches played at each grounds
 
 
-elif ui_section == "Grounds":
-    st.subheader("Grounds")
+elif ui_section == "Ground Chronicles":
+    st.subheader("Ground Chronicles")
     st.write("In this section, we explore the impact of different cricket grounds on match outcomes. We begin by showcasing the total matches played at each ground through a bar chart, followed by a map to visualize the geographical distribution of these venues. Additionally, a heatmap highlights the winning teams at specific grounds, giving insights into team performance by location. Lastly, a correlation heatmap reveals the relationships between winning teams and the grounds where they tend to succeed.")
     ground_country_mapping = {
         'Abu Dhabi': 'Abu Dhabi',
@@ -811,17 +819,10 @@ elif ui_section == "Grounds":
 
 #############################################################################################################################
 
-
-
-
-
-
-
-
 #Participation
 
-elif ui_section == "Participation":
-    st.subheader("Team1 vs Team2 Participations and Wins")
+elif ui_section == "Player Glory":
+    st.subheader("Player Glory")
     st.write("This section provides an in-depth comparison of Team 1 and Team 2 participation and wins across different years...")
 
     if 'Match Year' not in wc_final_data_df.columns:
@@ -1064,9 +1065,11 @@ elif ui_section == "Participation":
 
 
 #############################################################################################################################
-#search for your favourite teams and players
-elif ui_section == "Search For Your Favourite Teams and Players":
-    st.subheader("Look For Your Favourite Teams and Players!")
+
+
+# Search for your favourite teams and players
+elif ui_section == "Search Magic":
+    st.subheader("Search Magic")
 
     # Load the datasets
     players_df = pd.read_csv(players_url)
@@ -1212,6 +1215,8 @@ elif ui_section == "Search For Your Favourite Teams and Players":
 
 ############################################################################################################################
 
+
+
 if ds_section  == "Welcome!":    
     st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
     st.subheader('Cricket Fever: Data Edition') 
@@ -1244,6 +1249,88 @@ if ds_section  == "Welcome!":
 ############################################################################################################################
 
 
+elif ds_section == "About the Data":
+    st.subheader("About the Data")
+    st.markdown("""
+    Welcome to the **Dataset Overview** section! Here’s everything you need to know about the data that powers this app.
+    We’ve got several datasets, each packed with fascinating cricketing stats and insights. Let’s break them down:
+
+    ### 1. **All T20 World Cup Matches Results**
+    This dataset captures the essence of every match contested in all World Cup editions. Here’s what it includes:
+    - **Team1**: One of the teams in the match.
+    - **Team2**: The other team in the match.
+    - **Winner**: The winner of the contest. If it’s a tie, it says "tied", and for abandoned matches, it says "no result".
+    - **Margin**: The victory margin, either in runs or wickets.
+    - **Ground**: Where the match was played.
+    - **Match Date**: When the match was played.
+    - **T-20 Int Match**: The international match number for T20 cricket.
+    """)
+    # Display Matches Dataset
+    st.dataframe(all_matches_data_df, key='matches_dataframe')
+
+    st.markdown("""
+    ---
+
+    ### 2. **All T20 World Cup Players List**
+    Ever wondered who suited up for each World Cup edition? This dataset gives you:
+    - **Team**: The name of the participating country.
+    - **Year**: The year they participated.
+    - **Player Name**: Names of players representing their teams.
+    """)
+    # Display Players Dataset
+    st.dataframe(players_df, key='players_dataframe')
+
+    st.markdown("""
+    ---
+
+    ### 3. **WC Final Dataset**
+    This is the ultimate cricket dataset, with 16 attributes combining match results with advanced stats for accurate predictions. Highlights include:
+    - **Teams and Winners**: Team1, Team2, and match winners.
+    - **Player Rankings**: Average batting and bowling rankings of both teams, derived from ICC rankings.
+    - **Historical Stats**: Total World Cup participations and wins for each team.
+    - **Win Percentages**: Team1’s win percentage over Team2.
+    - **Margin of Victory**: Either in runs or wickets.
+    - **Web-Scraped Data**: Rankings scraped from reliable ICC sources one day before matches.
+    """)
+    # Display Final Dataset
+    st.dataframe(wc_final_data_df, key='final_dataset_dataframe')
+
+    st.markdown("""
+    ---
+
+    ### 4. **All Captains (2007-2024)**
+    A manual compilation of all captains leading their teams in World Cups from 2007 to 2024.
+    """)
+    # Display Captains Dataset
+    captains_df_cleaned = captains_df.loc[:, ~captains_df.columns.str.contains('^Unnamed')]
+
+        # Replace '-' in the Player Name column with None
+    if 'Player Name' in captains_df_cleaned.columns:
+            captains_df_cleaned['Player Name'] = captains_df_cleaned['Player Name'].replace('-', None)
+
+        # Display cleaned Captains Dataset
+    st.dataframe(captains_df_cleaned, key='captains_dataframe_cleaned')
+
+
+    st.markdown("""
+            ---
+    
+    From match results to player stats, and even a list of legendary captains, these datasets fuel the insights and visualizations you’ll see in this app. Dive in and explore the cricketing data that tells the story of T20 World Cup history!
+    """)
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################################################################################################################
 #Distribution of  Features
 
 elif ds_section == "Distribution of Features":
