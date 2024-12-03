@@ -186,21 +186,32 @@ if 'Team1 Avg Bowling Ranking' in wc_final_data_df.columns and 'Team2 Avg Bowlin
 
 
 # Sidebar
-st.sidebar.title("Navigation")
-section = st.sidebar.selectbox(
-    "Go to Section",
-    (
-        "Welcome!",
-        "Dataset Overview", #all sections
-        "Distribution of Features",
+st.sidebar.title("Explore the App")
+
+# Fun names for dropdowns
+ui_name = "🎭 Fan Favorites"
+ds_name = "🧪 Data Wizardry"
+
+ui_section = st.sidebar.selectbox(
+    ui_name,
+    [   None,
         "Matches and Wins by each Team",
         "Grounds",
         "Participation",
-        "Feature Factory",
-        "Predictor’s Playground",
         "Search For Your Favourite Teams and Players"
-    )
+    ]
 )
+
+ds_section = st.sidebar.selectbox(
+    ds_name,
+    [   None,
+        "Distribution of Features",
+        "Feature Factory",
+        "Predictors Playground"
+    ]
+)
+
+
 
 
 
@@ -216,7 +227,7 @@ import streamlit as st
 
 import streamlit as st
 
-if section == "Welcome!":
+if ui_section is None and ds_section is None:
     # App Title
     st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
     st.subheader('Cricket Fever: Data Edition') 
@@ -249,7 +260,7 @@ if section == "Welcome!":
 
 
 #  Display the dataset
-elif section == "Dataset Overview":
+if ui_section == "Dataset Overview":
     st.subheader('Dataset Overview')    
     st.write("The Men's Cricket World Cup is one of the most prestigious tournaments in the cricketing calendar, showcasing the talents of the world's best teams and players. This project aims to analyze and visualize key data from the tournament, focusing on match outcomes, team performances, and individual player statistics. By leveraging advanced data analysis techniques, we will explore trends in match margins, batting and bowling averages, and historical rivalries. Through this comprehensive analysis, we seek to provide valuable insights into the dynamics of the tournament, enhancing our understanding of competitiveness and performance in international cricket.")
     wc_final_data_df = pd.read_csv('updated_wc_final_data_df.csv')
@@ -273,172 +284,6 @@ elif section == "Dataset Overview":
 
 
 
-#Distribution of  Features
-
-elif section == "Distribution of Features":
-    st.subheader("Distribution of Key Numeric Features")
-    st.write(
-        "These plots provide insights into match competitiveness and team performance. "
-        "The first histogram shows the distribution of match margins, where lower margins indicate closely contested games "
-        "and higher margins point to dominant victories. The second histogram displays Team 1's average batting rankings, "
-        "helping to assess their overall batting strength. Together, these visualizations highlight the balance between teams "
-        "and offer a snapshot of performance trends."
-    )
-
-    # Bar Plot 1: Distribution of Match Margin
-    fig_margin = px.histogram(
-        wc_final_data_df,
-        x="Margin",
-        nbins=20,
-        title="Distribution of Match Margin",
-        labels={"x": "Margin", "y": "Frequency"},
-        template="plotly_white",
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
-    )
-    fig_margin.update_traces(
-        marker_line_color="black",  # Add black edges to bars
-        marker_line_width=1.5
-    )
-    fig_margin.update_layout(
-        xaxis_title="Margin",
-        yaxis_title="Frequency",
-        width=600,
-        height=400,
-    )
-
-    # Bar Plot 2: Distribution of Team1 Avg Batting Ranking
-    fig_batting_ranking = px.histogram(
-        wc_final_data_df,
-        x="Team1 Avg Batting Ranking",
-        nbins=20,
-        title="Distribution of Team1 Avg Batting Ranking",
-        labels={"x": "Batting Ranking", "y": "Frequency"},
-        template="plotly_white",
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
-    )
-    fig_batting_ranking.update_traces(
-        marker_line_color="black",  # Add black edges to bars
-        marker_line_width=1.5
-    )
-    fig_batting_ranking.update_layout(
-        xaxis_title="Batting Ranking",
-        yaxis_title="Frequency",
-        width=600,
-        height=400,
-    )
-
-    # Display plots side by side
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_margin, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig_batting_ranking, use_container_width=True)
-
-
-    st.subheader("Distribution of Ranking Differences")
-    st.write(
-            "The 2 histograms show the distribution of batting and bowling ranking differences between Team 1 and Team 2. "
-            "The x-axis represents the ranking difference, while the y-axis shows the frequency of occurrences. "
-            "A higher frequency at lower differences suggests that most matches have been between teams with similar rankings, "
-            "while a higher frequency at larger differences indicates matches with greater disparities in rankings."
-        )
-
-        # Histogram for Batting Ranking Difference
-    fig_batting_ranking_diff = px.histogram(
-            wc_final_data_df,
-            x="Batting Ranking Difference",
-            nbins=20,
-            title="Distribution of Batting Ranking Difference",
-            labels={"x": "Batting Ranking Difference", "y": "Frequency"},
-            template="plotly_white",
-            color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
-        )
-    fig_batting_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
-    fig_batting_ranking_diff.update_layout(
-            xaxis_title="Batting Ranking Difference",
-            yaxis_title="Frequency",
-            width=600,
-            height=400,
-        )
-
-        # Histogram for Bowling Ranking Difference
-    fig_bowling_ranking_diff = px.histogram(
-            wc_final_data_df,
-            x="Bowling Ranking Difference",
-            nbins=20,
-            title="Distribution of Bowling Ranking Difference",
-            labels={"x": "Bowling Ranking Difference", "y": "Frequency"},
-            template="plotly_white",
-            color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
-        )
-    fig_bowling_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
-    fig_bowling_ranking_diff.update_layout(
-            xaxis_title="Bowling Ranking Difference",
-            yaxis_title="Frequency",
-            width=600,
-            height=400,
-        )
-
-        # Display histograms side by side
-    col1, col2 = st.columns(2)
-    with col1:
-            st.plotly_chart(fig_batting_ranking_diff, use_container_width=True)
-    with col2:
-            st.plotly_chart(fig_bowling_ranking_diff, use_container_width=True)
-
-        # Line plot for ranking differences over time
-    st.write(
-            "The line plot tracks the changes in batting and bowling ranking differences over time. "
-            "The x-axis represents the match year, and the y-axis shows the ranking difference. "
-            "This plot helps visualize how the competitiveness between teams has evolved over time, "
-            "highlighting trends in batting and bowling strength disparities."
-        )
-
-    fig = go.Figure()
-
-        # Batting Ranking Difference Line
-    fig.add_trace(
-            go.Scatter(
-                x=wc_final_data_df["Match Year"],
-                y=wc_final_data_df["Batting Ranking Difference"],
-                mode="lines",
-                name="Batting Ranking Difference",
-                line=dict(color="rgb(68, 1, 84)"),  # Viridis palette color
-                hovertext=wc_final_data_df.apply(
-                    lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
-                ),
-                hoverinfo="text+y",
-            )
-        )
-
-        # Bowling Ranking Difference Line
-    fig.add_trace(
-            go.Scatter(
-                x=wc_final_data_df["Match Year"],
-                y=wc_final_data_df["Bowling Ranking Difference"],
-                mode="lines",
-                name="Bowling Ranking Difference",
-                line=dict(color="rgb(33, 145, 140)", dash="dash"),  # Another Viridis color
-                hovertext=wc_final_data_df.apply(
-                    lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
-                ),
-                hoverinfo="text+y",
-            )
-        )
-
-        # Update layout for the line plot
-    fig.update_layout(
-            title="Batting and Bowling Ranking Differences Between Team 1 and Team 2 Over Time",
-            xaxis_title="Match Year",
-            yaxis_title="Ranking Difference",
-            legend_title="Ranking Type",
-            hovermode="x unified",
-            template="plotly_white",
-        )
-
-        # Display the line plot
-    st.plotly_chart(fig)
-
 
 
 
@@ -452,7 +297,7 @@ elif section == "Distribution of Features":
 
 # Matches and Wins by each Team
 
-elif section == "Matches and Wins by each Team":
+elif ui_section == "Matches and Wins by each Team":
     st.subheader("Matches and Wins by each Team")
     st.write("The Matches section displays the total number of matches played by each team using a bar plot and a geospatial map. The number of matches for each team is calculated by combining their appearances as both Team1 and Team2. The bar plot shows the total number of matches for each team, and a choropleth map visualizes the geographical distribution of matches by mapping teams to their respective countries. Both visualizations are presented side by side to provide insights into the total matches and their geographic spread.")
 
@@ -731,7 +576,7 @@ elif section == "Matches and Wins by each Team":
 #Total Matches played at each grounds
 
 
-elif section == "Grounds":
+elif ui_section == "Grounds":
     st.subheader("Grounds")
     st.write("In this section, we explore the impact of different cricket grounds on match outcomes. We begin by showcasing the total matches played at each ground through a bar chart, followed by a map to visualize the geographical distribution of these venues. Additionally, a heatmap highlights the winning teams at specific grounds, giving insights into team performance by location. Lastly, a correlation heatmap reveals the relationships between winning teams and the grounds where they tend to succeed.")
     ground_country_mapping = {
@@ -923,7 +768,7 @@ elif section == "Grounds":
 
 #Participation
 
-elif section == "Participation":
+elif ui_section == "Participation":
     st.subheader("Team1 vs Team2 Participations and Wins")
     st.write("This section provides an in-depth comparison of Team 1 and Team 2 participation and wins across different years...")
 
@@ -1167,11 +1012,342 @@ elif section == "Participation":
 
 
 #############################################################################################################################
+#search for your favourite teams and players
+elif ui_section == "Search For Your Favourite Teams and Players":
+    st.subheader("Look For Your Favourite Teams and Players!")
+
+    # Load the datasets
+    players_df = pd.read_csv(players_url)
+    wc_final_data_df = pd.read_csv(final_dataset_url)
+    captains_df = pd.read_csv(captains_url)
+
+    # Separate 'Match Date' into 'Day', 'Month', 'Year'
+    wc_final_data_df['Match Date'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce')
+    wc_final_data_df['Day'] = wc_final_data_df['Match Date'].dt.day
+    wc_final_data_df['Month'] = wc_final_data_df['Match Date'].dt.month
+    wc_final_data_df['Year'] = wc_final_data_df['Match Date'].dt.year
+
+    # Function to extract runs from the 'Margin' column
+    def extract_runs(margin):
+        if isinstance(margin, str) and 'runs' in margin:
+            return float(margin.split()[0])
+        return None
+
+    # Function to extract wickets from the 'Margin' column
+    def extract_wickets(margin):
+        if isinstance(margin, str) and 'wickets' in margin:
+            return float(margin.split()[0])
+        return None
+
+    # Apply the functions to extract 'Margin (Runs)' and 'Margin (Wickets)'
+    wc_final_data_df['Margin (Runs)'] = wc_final_data_df['Margin'].apply(extract_runs)
+    wc_final_data_df['Margin (Wickets)'] = wc_final_data_df['Margin'].apply(extract_wickets)
+
+    # Team search bar
+    team_name = st.text_input("Search for a team (optional):")
+
+    # Year search bar
+    year = st.text_input("Enter the year (optional):")
+
+    # Initialize an empty DataFrame for the filtered data
+    filtered_data = pd.DataFrame()
+
+    # Apply filters based on the user's input
+    if team_name and year:
+        year = int(year)
+        filtered_data_team1 = wc_final_data_df[(wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)) & (wc_final_data_df['Year'] == year)]
+        filtered_data_team2 = wc_final_data_df[(wc_final_data_df['Team2'].str.contains(team_name, case=False, na=False)) & (wc_final_data_df['Year'] == year)]
+        filtered_data = pd.concat([filtered_data_team1, filtered_data_team2])
+    elif team_name:
+        filtered_data_team1 = wc_final_data_df[wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)]
+        filtered_data_team2 = wc_final_data_df[wc_final_data_df['Team2'].str.contains(team_name, case=False, na=False)]
+        filtered_data = pd.concat([filtered_data_team1, filtered_data_team2])
+    elif year:
+        year = int(year)
+        filtered_data = wc_final_data_df[wc_final_data_df['Year'] == year]
+    else:
+        st.write("Please enter a team name, a year, or both to search.")
+
+    # Process the filtered data
+    if not filtered_data.empty:
+        filtered_data['Team'] = np.where(filtered_data['Team1'].str.contains(team_name, case=False, na=False), filtered_data['Team1'], filtered_data['Team2'])
+        filtered_data['Against'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team2'], filtered_data['Team1'])
+
+        filtered_data['Batting Avg'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team1 Avg Batting Ranking'], filtered_data['Team2 Avg Batting Ranking'])
+        filtered_data['Bowling Avg'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team1 Avg Bowling Ranking'], filtered_data['Team2 Avg Bowling Ranking'])
+
+        # Handle margins for runs and wickets
+        filtered_data['Margin Type'] = np.where(filtered_data['Margin (Runs)'].notna(), 'Runs', 'Wickets')
+        filtered_data['Margin Numeric'] = np.where(filtered_data['Margin (Runs)'].notna(), filtered_data['Margin (Runs)'], filtered_data['Margin (Wickets)'])
+
+        # Fill any missing values in 'Margin Numeric' with 0
+        filtered_data['Margin Numeric'] = filtered_data['Margin Numeric'].fillna(0)
+
+        match_count_by_ground = filtered_data.groupby('Ground').size().reset_index(name=f"Number of Matches Played by {team_name}")
+        filtered_data = pd.merge(filtered_data, match_count_by_ground, on='Ground', how='left')
+
+        filtered_data = pd.merge(
+            filtered_data,
+            captains_df[['Team', 'Player Name', 'Year']],
+            left_on=['Team', 'Year'],
+            right_on=['Team', 'Year'],
+            how='left'
+        )
+
+        filtered_data.rename(columns={'Player Name': 'Captain'}, inplace=True)
+
+        # Plot the scatter plot with Viridis palette
+        fig_scatter = px.scatter(
+            filtered_data,
+            x='Batting Avg',
+            y='Bowling Avg',
+            size='Margin Numeric',  # Use 'Margin Numeric' based on runs or wickets
+            color='Margin Numeric',  # Use numeric margin for Viridis palette
+            hover_name='Team',
+            hover_data={
+                'Year': True,
+                'Winner': True,
+                'Against': True,
+                'Captain': True,
+                f"Number of Matches Played by {team_name}": True,
+                'Margin Type': True  # Show the type of margin (runs or wickets)
+            },
+            title=f'Team Performance (Batting vs Bowling Average by Ground) for {team_name}',
+            labels={'Batting Avg': 'Batting Average', 'Bowling Avg': 'Bowling Average', 'Margin Numeric': 'Match Margin'},
+            color_continuous_scale='Viridis'  # Use Viridis palette for continuous data
+        )
+
+        st.dataframe(filtered_data[['Year', 'Team', 'Against', 'Winner', 'Ground', 'Captain', 'Margin Type', 'Margin Numeric']])
+        st.plotly_chart(fig_scatter, use_container_width=True)
+
+    else:
+        st.write("No matches found for the provided input.")
+
+    # Player search bar, independent of the team search
+    st.markdown("##### Search for a Player")
+    player_name = st.text_input("Enter the player name:")
+
+    # Check if the input player name is in the player_df DataFrame
+    if player_name:
+        player_data = players_df[players_df['Player Name'].str.contains(player_name, case=False, na=False)]
+        
+        if not player_data.empty:
+            teams = player_data['Team'].unique()
+
+            for team in teams:
+                team_data = player_data[player_data['Team'] == team]
+                total_years = len(team_data['Year'].unique())
+                year_range = f"{team_data['Year'].min()} - {team_data['Year'].max()}"
+
+                st.write(f"**Player:** {player_name}")
+                st.write(f"**Team:** {team}")
+                st.write(f"**Total Number of Years in Team:** {total_years}")
+                st.write(f"**Year Range in Team:** {year_range}")
+
+                captain_data = captains_df[captains_df['Player Name'].str.contains(player_name, case=False, na=False) & (captains_df['Team'] == team)]
+                if not captain_data.empty:
+                    captain_years = captain_data['Year'].tolist()
+                    st.write(f"**Captain for {team} in the following years:** {', '.join(map(str, captain_years))}")
+                else:
+                    st.write(f"{player_name} was not a captain for {team}.")
+        else:
+            st.write("Player not found in the dataset.")
+    else:
+        st.write("Please enter a player name to search.")
+
+
+
+
+############################################################################################################################
+
+
+
+
+
+
+
+
+############################################################################################################################
+
+
+#Distribution of  Features
+
+if ds_section == "Distribution of Features":
+    st.subheader("Distribution of Key Numeric Features")
+    st.write(
+        "These plots provide insights into match competitiveness and team performance. "
+        "The first histogram shows the distribution of match margins, where lower margins indicate closely contested games "
+        "and higher margins point to dominant victories. The second histogram displays Team 1's average batting rankings, "
+        "helping to assess their overall batting strength. Together, these visualizations highlight the balance between teams "
+        "and offer a snapshot of performance trends."
+    )
+
+    # Bar Plot 1: Distribution of Match Margin
+    fig_margin = px.histogram(
+        wc_final_data_df,
+        x="Margin",
+        nbins=20,
+        title="Distribution of Match Margin",
+        labels={"x": "Margin", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
+    fig_margin.update_traces(
+        marker_line_color="black",  # Add black edges to bars
+        marker_line_width=1.5
+    )
+    fig_margin.update_layout(
+        xaxis_title="Margin",
+        yaxis_title="Frequency",
+        width=600,
+        height=400,
+    )
+
+    # Bar Plot 2: Distribution of Team1 Avg Batting Ranking
+    fig_batting_ranking = px.histogram(
+        wc_final_data_df,
+        x="Team1 Avg Batting Ranking",
+        nbins=20,
+        title="Distribution of Team1 Avg Batting Ranking",
+        labels={"x": "Batting Ranking", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+    )
+    fig_batting_ranking.update_traces(
+        marker_line_color="black",  # Add black edges to bars
+        marker_line_width=1.5
+    )
+    fig_batting_ranking.update_layout(
+        xaxis_title="Batting Ranking",
+        yaxis_title="Frequency",
+        width=600,
+        height=400,
+    )
+
+    # Display plots side by side
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_margin, use_container_width=True)
+    with col2:
+        st.plotly_chart(fig_batting_ranking, use_container_width=True)
+
+
+    st.subheader("Distribution of Ranking Differences")
+    st.write(
+            "The 2 histograms show the distribution of batting and bowling ranking differences between Team 1 and Team 2. "
+            "The x-axis represents the ranking difference, while the y-axis shows the frequency of occurrences. "
+            "A higher frequency at lower differences suggests that most matches have been between teams with similar rankings, "
+            "while a higher frequency at larger differences indicates matches with greater disparities in rankings."
+        )
+
+        # Histogram for Batting Ranking Difference
+    fig_batting_ranking_diff = px.histogram(
+            wc_final_data_df,
+            x="Batting Ranking Difference",
+            nbins=20,
+            title="Distribution of Batting Ranking Difference",
+            labels={"x": "Batting Ranking Difference", "y": "Frequency"},
+            template="plotly_white",
+            color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
+        )
+    fig_batting_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_batting_ranking_diff.update_layout(
+            xaxis_title="Batting Ranking Difference",
+            yaxis_title="Frequency",
+            width=600,
+            height=400,
+        )
+
+        # Histogram for Bowling Ranking Difference
+    fig_bowling_ranking_diff = px.histogram(
+            wc_final_data_df,
+            x="Bowling Ranking Difference",
+            nbins=20,
+            title="Distribution of Bowling Ranking Difference",
+            labels={"x": "Bowling Ranking Difference", "y": "Frequency"},
+            template="plotly_white",
+            color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
+        )
+    fig_bowling_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_bowling_ranking_diff.update_layout(
+            xaxis_title="Bowling Ranking Difference",
+            yaxis_title="Frequency",
+            width=600,
+            height=400,
+        )
+
+        # Display histograms side by side
+    col1, col2 = st.columns(2)
+    with col1:
+            st.plotly_chart(fig_batting_ranking_diff, use_container_width=True)
+    with col2:
+            st.plotly_chart(fig_bowling_ranking_diff, use_container_width=True)
+
+        # Line plot for ranking differences over time
+    st.write(
+            "The line plot tracks the changes in batting and bowling ranking differences over time. "
+            "The x-axis represents the match year, and the y-axis shows the ranking difference. "
+            "This plot helps visualize how the competitiveness between teams has evolved over time, "
+            "highlighting trends in batting and bowling strength disparities."
+        )
+
+    fig = go.Figure()
+
+        # Batting Ranking Difference Line
+    fig.add_trace(
+            go.Scatter(
+                x=wc_final_data_df["Match Year"],
+                y=wc_final_data_df["Batting Ranking Difference"],
+                mode="lines",
+                name="Batting Ranking Difference",
+                line=dict(color="rgb(68, 1, 84)"),  # Viridis palette color
+                hovertext=wc_final_data_df.apply(
+                    lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
+                ),
+                hoverinfo="text+y",
+            )
+        )
+
+        # Bowling Ranking Difference Line
+    fig.add_trace(
+            go.Scatter(
+                x=wc_final_data_df["Match Year"],
+                y=wc_final_data_df["Bowling Ranking Difference"],
+                mode="lines",
+                name="Bowling Ranking Difference",
+                line=dict(color="rgb(33, 145, 140)", dash="dash"),  # Another Viridis color
+                hovertext=wc_final_data_df.apply(
+                    lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
+                ),
+                hoverinfo="text+y",
+            )
+        )
+
+        # Update layout for the line plot
+    fig.update_layout(
+            title="Batting and Bowling Ranking Differences Between Team 1 and Team 2 Over Time",
+            xaxis_title="Match Year",
+            yaxis_title="Ranking Difference",
+            legend_title="Ranking Type",
+            hovermode="x unified",
+            template="plotly_white",
+        )
+
+        # Display the line plot
+    st.plotly_chart(fig)
+
+
+     
+
+
+
+############################################################################################################################
+
 
 # Feature Factory
 
 # Feature Engineering and Data Transformation on the dataset
-elif section == "Feature Factory":
+elif ds_section == "Feature Factory":
     st.subheader("Interactive Cricket Match Analysis")
 # 1. Derive "Home Advantage" feature
 # Assume teams have an advantage when the match is played in their home country
@@ -1386,166 +1562,6 @@ elif section == "Feature Factory":
 
 
 
-
-
-
-############################################################################################################################
-     elif section == "Predictor’s Playground":
-     
-
-
-
-############################################################################################################################
-
-
-
-
-
-
-#search for your favourite teams and players
-
-
-elif section == "Search For Your Favourite Teams and Players":
-    st.subheader("Look For Your Favourite Teams and Players!")
-
-    # Load the datasets
-    players_df = pd.read_csv(players_url)
-    wc_final_data_df = pd.read_csv(final_dataset_url)
-    captains_df = pd.read_csv(captains_url)
-
-    # Separate 'Match Date' into 'Day', 'Month', 'Year'
-    wc_final_data_df['Match Date'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce')
-    wc_final_data_df['Day'] = wc_final_data_df['Match Date'].dt.day
-    wc_final_data_df['Month'] = wc_final_data_df['Match Date'].dt.month
-    wc_final_data_df['Year'] = wc_final_data_df['Match Date'].dt.year
-
-    # Function to extract runs from the 'Margin' column
-    def extract_runs(margin):
-        if isinstance(margin, str) and 'runs' in margin:
-            return float(margin.split()[0])
-        return None
-
-    # Function to extract wickets from the 'Margin' column
-    def extract_wickets(margin):
-        if isinstance(margin, str) and 'wickets' in margin:
-            return float(margin.split()[0])
-        return None
-
-    # Apply the functions to extract 'Margin (Runs)' and 'Margin (Wickets)'
-    wc_final_data_df['Margin (Runs)'] = wc_final_data_df['Margin'].apply(extract_runs)
-    wc_final_data_df['Margin (Wickets)'] = wc_final_data_df['Margin'].apply(extract_wickets)
-
-    # Team search bar
-    team_name = st.text_input("Search for a team (optional):")
-
-    # Year search bar
-    year = st.text_input("Enter the year (optional):")
-
-    # Initialize an empty DataFrame for the filtered data
-    filtered_data = pd.DataFrame()
-
-    # Apply filters based on the user's input
-    if team_name and year:
-        year = int(year)
-        filtered_data_team1 = wc_final_data_df[(wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)) & (wc_final_data_df['Year'] == year)]
-        filtered_data_team2 = wc_final_data_df[(wc_final_data_df['Team2'].str.contains(team_name, case=False, na=False)) & (wc_final_data_df['Year'] == year)]
-        filtered_data = pd.concat([filtered_data_team1, filtered_data_team2])
-    elif team_name:
-        filtered_data_team1 = wc_final_data_df[wc_final_data_df['Team1'].str.contains(team_name, case=False, na=False)]
-        filtered_data_team2 = wc_final_data_df[wc_final_data_df['Team2'].str.contains(team_name, case=False, na=False)]
-        filtered_data = pd.concat([filtered_data_team1, filtered_data_team2])
-    elif year:
-        year = int(year)
-        filtered_data = wc_final_data_df[wc_final_data_df['Year'] == year]
-    else:
-        st.write("Please enter a team name, a year, or both to search.")
-
-    # Process the filtered data
-    if not filtered_data.empty:
-        filtered_data['Team'] = np.where(filtered_data['Team1'].str.contains(team_name, case=False, na=False), filtered_data['Team1'], filtered_data['Team2'])
-        filtered_data['Against'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team2'], filtered_data['Team1'])
-
-        filtered_data['Batting Avg'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team1 Avg Batting Ranking'], filtered_data['Team2 Avg Batting Ranking'])
-        filtered_data['Bowling Avg'] = np.where(filtered_data['Team'] == filtered_data['Team1'], filtered_data['Team1 Avg Bowling Ranking'], filtered_data['Team2 Avg Bowling Ranking'])
-
-        # Handle margins for runs and wickets
-        filtered_data['Margin Type'] = np.where(filtered_data['Margin (Runs)'].notna(), 'Runs', 'Wickets')
-        filtered_data['Margin Numeric'] = np.where(filtered_data['Margin (Runs)'].notna(), filtered_data['Margin (Runs)'], filtered_data['Margin (Wickets)'])
-
-        # Fill any missing values in 'Margin Numeric' with 0
-        filtered_data['Margin Numeric'] = filtered_data['Margin Numeric'].fillna(0)
-
-        match_count_by_ground = filtered_data.groupby('Ground').size().reset_index(name=f"Number of Matches Played by {team_name}")
-        filtered_data = pd.merge(filtered_data, match_count_by_ground, on='Ground', how='left')
-
-        filtered_data = pd.merge(
-            filtered_data,
-            captains_df[['Team', 'Player Name', 'Year']],
-            left_on=['Team', 'Year'],
-            right_on=['Team', 'Year'],
-            how='left'
-        )
-
-        filtered_data.rename(columns={'Player Name': 'Captain'}, inplace=True)
-
-        # Plot the scatter plot with Viridis palette
-        fig_scatter = px.scatter(
-            filtered_data,
-            x='Batting Avg',
-            y='Bowling Avg',
-            size='Margin Numeric',  # Use 'Margin Numeric' based on runs or wickets
-            color='Margin Numeric',  # Use numeric margin for Viridis palette
-            hover_name='Team',
-            hover_data={
-                'Year': True,
-                'Winner': True,
-                'Against': True,
-                'Captain': True,
-                f"Number of Matches Played by {team_name}": True,
-                'Margin Type': True  # Show the type of margin (runs or wickets)
-            },
-            title=f'Team Performance (Batting vs Bowling Average by Ground) for {team_name}',
-            labels={'Batting Avg': 'Batting Average', 'Bowling Avg': 'Bowling Average', 'Margin Numeric': 'Match Margin'},
-            color_continuous_scale='Viridis'  # Use Viridis palette for continuous data
-        )
-
-        st.dataframe(filtered_data[['Year', 'Team', 'Against', 'Winner', 'Ground', 'Captain', 'Margin Type', 'Margin Numeric']])
-        st.plotly_chart(fig_scatter, use_container_width=True)
-
-    else:
-        st.write("No matches found for the provided input.")
-
-    # Player search bar, independent of the team search
-    st.markdown("##### Search for a Player")
-    player_name = st.text_input("Enter the player name:")
-
-    # Check if the input player name is in the player_df DataFrame
-    if player_name:
-        player_data = players_df[players_df['Player Name'].str.contains(player_name, case=False, na=False)]
-        
-        if not player_data.empty:
-            teams = player_data['Team'].unique()
-
-            for team in teams:
-                team_data = player_data[player_data['Team'] == team]
-                total_years = len(team_data['Year'].unique())
-                year_range = f"{team_data['Year'].min()} - {team_data['Year'].max()}"
-
-                st.write(f"**Player:** {player_name}")
-                st.write(f"**Team:** {team}")
-                st.write(f"**Total Number of Years in Team:** {total_years}")
-                st.write(f"**Year Range in Team:** {year_range}")
-
-                captain_data = captains_df[captains_df['Player Name'].str.contains(player_name, case=False, na=False) & (captains_df['Team'] == team)]
-                if not captain_data.empty:
-                    captain_years = captain_data['Year'].tolist()
-                    st.write(f"**Captain for {team} in the following years:** {', '.join(map(str, captain_years))}")
-                else:
-                    st.write(f"{player_name} was not a captain for {team}.")
-        else:
-            st.write("Player not found in the dataset.")
-    else:
-        st.write("Please enter a player name to search.")
 
 
 
