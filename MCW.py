@@ -1170,32 +1170,6 @@ elif ui_section == "Search For Your Favourite Teams and Players":
 
 ############################################################################################################################
 
-if ds_section == "Welcome!": 
-    st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
-    st.subheader('Cricket Fever: Data Edition') 
-
-        # Displaying the GIF from the raw GitHub link
-    gif_url = "https://raw.githubusercontent.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/main/giphy.gif"
-    st.image(gif_url, use_container_width=True)
-
-    st.markdown("""
-                    Are you ready to dive into the thrilling world of cricket? Whether you’re a die-hard fan, a stats geek, or just someone who loves the spirit of the game, this app is your one-stop destination to explore and analyze everything about the **Men's T20 World Cup**!
-
-                    ✨ From nail-biting finishes to record-breaking performances, this app unpacks the data behind the drama. Explore:
-
-                    - 🔥 **Team Battles**: Who dominated the field and who needs to up their game?
-                    - 🌍 **Ground Chronicles**: Which stadiums turned into fortresses for teams?
-                    - 🌟 **Player Glory**: Discover stars who shone brightest under pressure.
-                    - 🕵️‍♂️ **Search Magic**: Zero in on your favorite teams or players in an instant!
-
-                    🎉 **Why this app?**  
-                    Because cricket isn’t just a sport—it’s a passion, a science, and a celebration. And with this app, you can experience it all in an interactive, fun, and data-driven way.
-                    """)
-
-        # Footer or call-to-action
-    st.markdown("---")
-    st.markdown("### 🏏 Let the cricket journey begin! Navigate using the sidebar to explore more insights.")
-
 
 
 
