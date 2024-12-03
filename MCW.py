@@ -194,7 +194,7 @@ ds_name = "🧪 Data Wizardry"
 
 ui_section = st.sidebar.selectbox(
     ui_name,
-    [   None,
+    [   "Welcome!",
         "Matches and Wins by each Team",
         "Grounds",
         "Participation",
@@ -204,7 +204,7 @@ ui_section = st.sidebar.selectbox(
 
 ds_section = st.sidebar.selectbox(
     ds_name,
-    [   None,
+    [   "Welcome!",
         "Distribution of Features",
         "Feature Factory",
         "Predictors Playground"
@@ -222,13 +222,7 @@ ds_section = st.sidebar.selectbox(
 #############################################################################################################################
 
 
-
-import streamlit as st
-
-import streamlit as st
-
-if ui_section is None and ds_section is None:
-    # App Title
+if ui_section == "Welcome!" and ds_section == "Welcome!":    # App Title
     st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
     st.subheader('Cricket Fever: Data Edition') 
 
