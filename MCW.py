@@ -638,7 +638,16 @@ elif ui_section == "Team Battles":
 
 elif ui_section == "Ground Chronicles":
     st.subheader("Ground Chronicles")
-    st.write("In this section, we explore the impact of different cricket grounds on match outcomes. We begin by showcasing the total matches played at each ground through a bar chart, followed by a map to visualize the geographical distribution of these venues. Additionally, a heatmap highlights the winning teams at specific grounds, giving insights into team performance by location. Lastly, a correlation heatmap reveals the relationships between winning teams and the grounds where they tend to succeed.")
+    st.write("""
+    In this section, we explore the impact of different cricket grounds on match outcomes. We dive into the total matches played at each ground, the geographic distribution of these venues, and the winning trends at specific locations. Each visualization provides unique insights into how grounds influence team performances.
+    """)    
+
+    
+    
+    st.subheader("Total Matches Played at Each Ground")
+    st.markdown(""" The bar chart shows the total number of matches played at various cricket grounds, providing insights into the most frequently used venues.  
+    The accompanying scatter map visualizes the geographic distribution of these grounds. The size of the points on the map reflects the number of matches played at each venue, offering a clear view of cricket’s global footprint.
+    """)
     ground_country_mapping = {
         'Abu Dhabi': 'Abu Dhabi',
         'Adelaide': 'Australia',
@@ -768,6 +777,12 @@ elif ui_section == "Ground Chronicles":
         lambda x: ', '.join(wc_final_data_df[wc_final_data_df['Ground'] == x]['Winner'].unique())
     )
     # Heatmap
+    st.subheader("Heatmaps")
+    st.markdown("""
+    **How Grounds Influence Team Success:**  
+    This section helps you discover which teams perform best at specific cricket grounds. The visual shows how many times each team has won at various venues, giving you a clear picture of the places where teams dominate. Alongside, the table provides a detailed breakdown of the connection between grounds and winning teams, offering easy-to-understand numbers to support the visual patterns. It's a simple way to explore which teams thrive where and uncover surprising insights about their winning streaks.
+    """)
+
     ground_winner_pivot = wc_final_data_df.pivot_table(index='Ground', 
                                                     columns='Winner', 
                                                     aggfunc='size', 
@@ -784,7 +799,9 @@ elif ui_section == "Ground Chronicles":
         height=600
     )
     st.plotly_chart(fig_heatmap)
+
     #Correlation Heatmap - one hot encoding
+    st.subheader("Correlatioanl Heatmap")
     df_encoded = pd.get_dummies(wc_final_data_df[['Winner', 'Ground']])
     # Compute the correlation matrix
     correlation_matrix = df_encoded.corr()
@@ -823,7 +840,12 @@ elif ui_section == "Ground Chronicles":
 
 elif ui_section == "Player Glory":
     st.subheader("Player Glory")
-    st.write("This section provides an in-depth comparison of Team 1 and Team 2 participation and wins across different years...")
+    st.markdown("""
+    **Unveiling Player Glory**  
+
+    Explore the incredible contributions of players to the T20 World Cup in this engaging section. From participation and wins across years to standout performances, we've got it all! 
+
+    """)
 
     if 'Match Year' not in wc_final_data_df.columns:
         wc_final_data_df['Match Year'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce').dt.year
@@ -847,6 +869,10 @@ elif ui_section == "Player Glory":
     team2_stats['Total Wins'] = team2_stats['Total Wins'].fillna(0)
 
     # Combined Bar and Line Plot for Team 1 and Team 2
+    st.subheader("Head-to-Head Wins Between Teams")
+    st.markdown("""
+    Dive into the intense rivalries between Team 1 and Team 2! This section showcases the number of times one team has defeated the other in direct matchups, giving a sense of which team holds the upper hand.
+    """)
     fig_team1_team2 = go.Figure()
     fig_team1_team2.add_trace(go.Bar(
         x=team1_stats['Match Year'], 
@@ -951,9 +977,10 @@ elif ui_section == "Player Glory":
         st.plotly_chart(fig_team2_over_team1, use_container_width=True)
 
 
-    st.subheader("Player Participation")
-    st.write("This section provides a comprehensive analysis of player participation trends over the years...")
-
+    st.subheader("Player Participation Trends")
+    st.markdown("""
+    Watch how teams have been represented by their players over the years. This section highlights how many players from each country participated in different tournaments, giving a sense of their consistent presence in the competition.
+    """)
     # Calculate player participation trends
     players_by_country = players_df['Team'].value_counts()
     player_participation_trends = players_df.groupby(['Year', 'Team']).size().reset_index(name='Player Count')
@@ -983,6 +1010,10 @@ elif ui_section == "Player Glory":
         st.dataframe(player_participation_trends, use_container_width=True)
 
     # Players with the longest participation
+    st.subheader("Legends of Longevity")
+    st.markdown("""
+    Meet the players who have participated in the most World Cups for their teams. Their dedication to the game shines through in this section, celebrating their enduring contributions to cricket.
+    """)
     player_participation = players_df.groupby(['Player Name', 'Team'])['Year'].nunique().reset_index(name='Years Participated')
     longest_participation = player_participation.loc[player_participation.groupby('Team')['Years Participated'].idxmax()]
 
@@ -1006,6 +1037,7 @@ elif ui_section == "Player Glory":
         st.dataframe(longest_participation, use_container_width=True)
 
     # Merging captains_df and players_df to include captaincy information
+       
     if 'Year' in players_df.columns and 'Year' in captains_df.columns:
         merged_data_captains = pd.merge(players_df, captains_df, on=['Player Name', 'Team', 'Year'], how='inner')
 
@@ -1036,6 +1068,7 @@ elif ui_section == "Player Glory":
     top_players_by_wins = player_wins.loc[player_wins.groupby('Team')['Wins'].idxmax()]
 
     # Funnel Plot for players with maximum wins
+    
     fig_funnel = px.funnel(
         top_players_by_wins, 
         x='Player Name', 
@@ -1046,12 +1079,21 @@ elif ui_section == "Player Glory":
         template='plotly_white',
         color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
     )
-
+    st.subheader("Top Match Winners")
+    st.markdown("""
+    Find out which players secured the most wins for their teams. This section highlights the standout performers who consistently delivered victories, earning them a spot in cricketing glory.
+    """)
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(fig_funnel, use_container_width=True)
     with col2:
         st.dataframe(top_players_by_wins, use_container_width=True)
+    
+    #Captains
+    st.subheader("Captains Who Led the Way")
+    st.markdown("""
+        Leadership matters! Discover the captains who led their teams for the longest time in World Cups. These individuals not only inspired their teammates but also etched their names in cricketing history.
+        """)
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(fig_longest_captains, use_container_width=True)
@@ -1333,8 +1375,8 @@ elif ds_section == "About the Data":
 ############################################################################################################################
 #Distribution of  Features
 
-elif ds_section == "Distribution of Features":
-    st.subheader("Distribution of Key Numeric Features")
+elif ds_section == "Cricket Stats":
+    st.subheader("Feature Engineering")
     st.write(
         "These plots provide insights into match competitiveness and team performance. "
         "The first histogram shows the distribution of match margins, where lower margins indicate closely contested games "
@@ -1725,6 +1767,12 @@ elif ds_section == "Feature Factory":
 
 
 
+############################################################################################################################
+
+# Predictions
+
+elif ds_section == " Forecasting the Champions":
+    st.subheader("Predictions")
 
 
 
