@@ -240,29 +240,29 @@ elif section_selector == ds_name:
 
 if ui_section == "Welcome!":    
     st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
-st.subheader('Cricket Fever: Data Edition') 
+    st.subheader('Cricket Fever') 
 
-    # Displaying the GIF from the raw GitHub link
-gif_url = "https://raw.githubusercontent.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/main/giphy.gif"
-st.image(gif_url, use_container_width=True)
+        # Displaying the GIF from the raw GitHub link
+    gif_url = "https://raw.githubusercontent.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/main/giphy.gif"
+    st.image(gif_url, use_container_width=True)
 
-st.markdown("""
-                Are you ready to dive into the thrilling world of cricket? Whether you’re a die-hard fan, a stats geek, or just someone who loves the spirit of the game, this app is your one-stop destination to explore and analyze everything about the **Men's T20 World Cup**!
+    st.markdown("""
+                    Are you ready to dive into the thrilling world of cricket? Whether you’re a die-hard fan, a stats geek, or just someone who loves the spirit of the game, this app is your one-stop destination to explore and analyze everything about the **Men's T20 World Cup**!
 
-                ✨ From nail-biting finishes to record-breaking performances, this app unpacks the data behind the drama. Explore:
+                    ✨ From nail-biting finishes to record-breaking performances, this app unpacks the data behind the drama. Explore:
 
-                - 🔥 **Team Battles**: Who dominated the field and who needs to up their game?
-                - 🌍 **Ground Chronicles**: Which stadiums turned into fortresses for teams?
-                - 🌟 **Player Glory**: Discover stars who shone brightest under pressure.
-                - 🕵️‍♂️ **Search Magic**: Zero in on your favorite teams or players in an instant!
+                    - 🔥 **Team Battles**: Who dominated the field and who needs to up their game?
+                    - 🌍 **Ground Chronicles**: Which stadiums turned into fortresses for teams?
+                    - 🌟 **Player Glory**: Discover stars who shone brightest under pressure.
+                    - 🕵️‍♂️ **Search Magic**: Zero in on your favorite teams or players in an instant!
 
-                🎉 **Why this app?**  
-                Because cricket isn’t just a sport—it’s a passion, a science, and a celebration. And with this app, you can experience it all in an interactive, fun, and data-driven way.
-                """)
+                    🎉 **Why this app?**  
+                    Because cricket isn’t just a sport—it’s a passion, a science, and a celebration. And with this app, you can experience it all in an interactive, fun, and data-driven way.
+                    """)
 
-    # Footer or call-to-action
-st.markdown("---")
-st.markdown("### 🏏 Let the cricket journey begin! Navigate using the sidebar to explore more insights.")
+        # Footer or call-to-action
+    st.markdown("---")
+    st.markdown("### 🏏 Let the cricket journey begin! Navigate using the sidebar to explore more insights.")
 
 #############################################################################################################################
 
@@ -270,7 +270,7 @@ st.markdown("### 🏏 Let the cricket journey begin! Navigate using the sidebar 
 
 
 #  Display the dataset
-if ui_section == "Dataset Overview":
+elif ui_section == "Dataset Overview":
     st.subheader('Dataset Overview')    
     st.write("The Men's Cricket World Cup is one of the most prestigious tournaments in the cricketing calendar, showcasing the talents of the world's best teams and players. This project aims to analyze and visualize key data from the tournament, focusing on match outcomes, team performances, and individual player statistics. By leveraging advanced data analysis techniques, we will explore trends in match margins, batting and bowling averages, and historical rivalries. Through this comprehensive analysis, we seek to provide valuable insights into the dynamics of the tournament, enhancing our understanding of competitiveness and performance in international cricket.")
     wc_final_data_df = pd.read_csv('updated_wc_final_data_df.csv')
@@ -1170,7 +1170,31 @@ elif ui_section == "Search For Your Favourite Teams and Players":
 
 ############################################################################################################################
 
+if ds_section  == "Welcome!":    
+    st.title("🏏 Welcome to the Ultimate Men's T20 World Cup Analysis App! 🏆")
+    st.subheader('Cricket Fever: Data Edition') 
 
+        # Displaying the GIF from the raw GitHub link
+    gif_url = "https://raw.githubusercontent.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/main/giphy.gif"
+    st.image(gif_url, use_container_width=True)
+
+    st.markdown("""
+                    Are you ready to dive into the thrilling world of cricket? Whether you’re a die-hard fan, a stats geek, or just someone who loves the spirit of the game, this app is your one-stop destination to explore and analyze everything about the **Men's T20 World Cup**!
+
+                    ✨ From nail-biting finishes to record-breaking performances, this app unpacks the data behind the drama. Explore:
+
+                    - 🔥 **Team Battles**: Who dominated the field and who needs to up their game?
+                    - 🌍 **Ground Chronicles**: Which stadiums turned into fortresses for teams?
+                    - 🌟 **Player Glory**: Discover stars who shone brightest under pressure.
+                    - 🕵️‍♂️ **Search Magic**: Zero in on your favorite teams or players in an instant!
+
+                    🎉 **Why this app?**  
+                    Because cricket isn’t just a sport—it’s a passion, a science, and a celebration. And with this app, you can experience it all in an interactive, fun, and data-driven way.
+                    """)
+
+        # Footer or call-to-action
+    st.markdown("---")
+    st.markdown("### 🏏 Let the cricket journey begin! Navigate using the sidebar to explore more insights.")
 
 
 
