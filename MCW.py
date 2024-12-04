@@ -1624,7 +1624,12 @@ elif ds_section == "About the Data":
     st.subheader("About the Data")
     st.markdown("""
     Welcome to the **Dataset Overview** section! Here’s everything you need to know about the data that powers this app.  
-    Our dataset is taken from [Kaggle](https://www.kaggle.com/datasets/kamalisrani/mens-t20-cwc-dataset-2007-2004), a hub of diverse and high-quality data. It’s packed with fascinating cricketing stats and insights, allowing us to analyze and predict the thrilling dynamics of the Men’s T20 World Cup.  Let’s break them down:
+    
+    Our dataset is primarily sourced from [Kaggle](https://www.kaggle.com/datasets/kamalisrani/mens-t20-cwc-dataset-2007-2004), a hub of diverse and high-quality data. It’s packed with fascinating cricketing stats and insights, allowing us to analyze and predict the thrilling dynamics of the Men’s T20 World Cup.  
+
+    Additionally, we’ve manually compiled data on team captains spanning the years 2007 to 2024, enriching our exploration of leadership patterns and their impact on team performance.   
+                
+    Here’s a closer look at the data that powers our analysis:
 
     ### 1. **All T20 World Cup Matches Results**
     This dataset captures the essence of every match contested in all World Cup editions. Here’s what it includes:
@@ -1677,7 +1682,8 @@ elif ds_section == "About the Data":
 
         # Replace '-' in the Player Name column with None
     if 'Player Name' in captains_df_cleaned.columns:
-            captains_df_cleaned['Player Name'] = captains_df_cleaned['Player Name'].replace('-', None)
+            captains_df_cleaned.loc[:, 'Player Name'] = captains_df_cleaned['Player Name'].replace('-', None)
+
 
         # Display cleaned Captains Dataset
     st.dataframe(captains_df_cleaned, key='captains_dataframe_cleaned')
@@ -1953,9 +1959,10 @@ elif ds_section == "Feature Factory":
         updated_wc_final_data_df['Season'] = updated_wc_final_data_df['Season'].map(season_mapping)
     # Ensure `Team1 Win` is correctly derived
     if 'Team1 Win' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df.apply(
-            lambda row: 1 if row['Winner'] == row['Team1'] else 0, axis=1
-        )
+        updated_wc_final_data_df.loc[:, 'Team1 Win'] = updated_wc_final_data_df.apply(
+                 lambda row: 1 if row['Winner'] == row['Team1'] else 0, axis=1
+                )
+
 
     # Verify the values in `Team1 Win`
     if updated_wc_final_data_df['Team1 Win'].nunique() <= 1:
@@ -2050,9 +2057,10 @@ elif ds_section == "Modeling the Game: Unveiling Predictions":
 
     # Ensure Winner column exists and contains correct data
     if 'Winner' in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df.apply(
+        updated_wc_final_data_df.loc[:, 'Team1 Win'] = updated_wc_final_data_df.apply(
             lambda row: 1 if row['Winner'] == row['Team1'] else 0, axis=1
         )
+
     else:
         st.error("The 'Winner' column is missing or incorrectly populated in the dataset.")
 
