@@ -1393,171 +1393,175 @@ elif ds_section == "About the Data":
 
 
 ############################################################################################################################
-#Distribution of  Features
 
 elif ds_section == "Cricket Stats":
-    st.subheader("Feature Engineering")
+    st.subheader("Cricket Stats: Hidden Stories Behind the Numbers 🏏")
+
+    # Match Margins Split by Runs and Wickets
     st.write(
-        "These plots provide insights into match competitiveness and team performance. "
-        "The first histogram shows the distribution of match margins, where lower margins indicate closely contested games "
-        "and higher margins point to dominant victories. The second histogram displays Team 1's average batting rankings, "
-        "helping to assess their overall batting strength. Together, these visualizations highlight the balance between teams "
-        "and offer a snapshot of performance trends."
+        "### The Drama of Match Margins\n"
+        "Let's dive into the nail-biting world of cricket outcomes! "
+        "Here, you can explore the match margins split into runs and wickets to see just how close (or one-sided) games have been. "
+        "Lower values mean edge-of-your-seat thrillers, while higher values reflect dominant wins."
     )
 
-    # Bar Plot 1: Distribution of Match Margin
-    fig_margin = px.histogram(
-        wc_final_data_df,
-        x="Margin",
+    # Margin by Runs
+    fig_margin_runs = px.histogram(
+        wc_final_data_df.sort_values(by="Margin (Runs)", ascending=False),
+        x="Margin (Runs)",
         nbins=20,
-        title="Distribution of Match Margin",
-        labels={"x": "Margin", "y": "Frequency"},
+        title="Distribution of Match Margins (Runs)",
+        labels={"x": "Margin (Runs)", "y": "Frequency"},
         template="plotly_white",
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+        color_discrete_sequence=px.colors.sequential.Viridis
     )
-    fig_margin.update_traces(
-        marker_line_color="black",  # Add black edges to bars
-        marker_line_width=1.5
+    fig_margin_runs.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_margin_runs.update_layout(xaxis_title="Margin (Runs)", yaxis_title="Frequency", width=600, height=400)
+
+    # Margin by Wickets
+    fig_margin_wickets = px.histogram(
+        wc_final_data_df.sort_values(by="Margin (Wickets)", ascending=False),
+        x="Margin (Wickets)",
+        nbins=20,
+        title="Distribution of Match Margins (Wickets)",
+        labels={"x": "Margin (Wickets)", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis
     )
-    fig_margin.update_layout(
-        xaxis_title="Margin",
-        yaxis_title="Frequency",
-        width=600,
-        height=400,
+    fig_margin_wickets.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_margin_wickets.update_layout(xaxis_title="Margin (Wickets)", yaxis_title="Frequency", width=600, height=400)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_margin_runs, use_container_width=True)
+    with col2:
+        st.plotly_chart(fig_margin_wickets, use_container_width=True)
+
+    # Team 1 and Team 2 Batting Rankings
+    st.write(
+        "### Team Batting Rankings\n"
+        "Next up, we explore the batting prowess of teams. Compare how Team 1 and Team 2 "
+        "stack up based on their average batting rankings. Are they top-class hitters or underdogs? "
+        "These visuals give you the answers!"
     )
 
-    # Bar Plot 2: Distribution of Team1 Avg Batting Ranking
-    fig_batting_ranking = px.histogram(
-        wc_final_data_df,
+    # Team 1 Avg Batting Ranking
+    fig_batting_team1 = px.histogram(
+        wc_final_data_df.sort_values(by="Team1 Avg Batting Ranking", ascending=False),
         x="Team1 Avg Batting Ranking",
         nbins=20,
-        title="Distribution of Team1 Avg Batting Ranking",
-        labels={"x": "Batting Ranking", "y": "Frequency"},
+        title="Distribution of Team 1 Avg Batting Ranking",
+        labels={"x": "Batting Ranking (Team 1)", "y": "Frequency"},
         template="plotly_white",
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+        color_discrete_sequence=px.colors.sequential.Viridis
     )
-    fig_batting_ranking.update_traces(
-        marker_line_color="black",  # Add black edges to bars
-        marker_line_width=1.5
-    )
-    fig_batting_ranking.update_layout(
-        xaxis_title="Batting Ranking",
-        yaxis_title="Frequency",
-        width=600,
-        height=400,
-    )
+    fig_batting_team1.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_batting_team1.update_layout(xaxis_title="Batting Ranking (Team 1)", yaxis_title="Frequency", width=600, height=400)
 
-    # Display plots side by side
+    # Team 2 Avg Batting Ranking
+    fig_batting_team2 = px.histogram(
+        wc_final_data_df.sort_values(by="Team2 Avg Batting Ranking", ascending=False),
+        x="Team2 Avg Batting Ranking",
+        nbins=20,
+        title="Distribution of Team 2 Avg Batting Ranking",
+        labels={"x": "Batting Ranking (Team 2)", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis
+    )
+    fig_batting_team2.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_batting_team2.update_layout(xaxis_title="Batting Ranking (Team 2)", yaxis_title="Frequency", width=600, height=400)
+
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig_margin, use_container_width=True)
+        st.plotly_chart(fig_batting_team1, use_container_width=True)
     with col2:
-        st.plotly_chart(fig_batting_ranking, use_container_width=True)
+        st.plotly_chart(fig_batting_team2, use_container_width=True)
 
-
-    st.subheader("Distribution of Ranking Differences")
+    # Ranking Differences
     st.write(
-            "The 2 histograms show the distribution of batting and bowling ranking differences between Team 1 and Team 2. "
-            "The x-axis represents the ranking difference, while the y-axis shows the frequency of occurrences. "
-            "A higher frequency at lower differences suggests that most matches have been between teams with similar rankings, "
-            "while a higher frequency at larger differences indicates matches with greater disparities in rankings."
-        )
+        "### Ranking Differences\n"
+        "Who dominates the pitch, and who struggles? These charts reveal the differences "
+        "in batting and bowling rankings between teams, shedding light on where each team "
+        "stands and how level the playing field really is."
+    )
 
-        # Histogram for Batting Ranking Difference
-    fig_batting_ranking_diff = px.histogram(
-            wc_final_data_df,
-            x="Batting Ranking Difference",
-            nbins=20,
-            title="Distribution of Batting Ranking Difference",
-            labels={"x": "Batting Ranking Difference", "y": "Frequency"},
-            template="plotly_white",
-            color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
-        )
-    fig_batting_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
-    fig_batting_ranking_diff.update_layout(
-            xaxis_title="Batting Ranking Difference",
-            yaxis_title="Frequency",
-            width=600,
-            height=400,
-        )
+    # Batting Ranking Difference
+    fig_batting_diff = px.histogram(
+        wc_final_data_df.sort_values(by="Batting Ranking Difference", ascending=False),
+        x="Batting Ranking Difference",
+        nbins=20,
+        title="Distribution of Batting Ranking Difference",
+        labels={"x": "Batting Ranking Difference", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis
+    )
+    fig_batting_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_batting_diff.update_layout(xaxis_title="Batting Ranking Difference", yaxis_title="Frequency", width=600, height=400)
 
-        # Histogram for Bowling Ranking Difference
-    fig_bowling_ranking_diff = px.histogram(
-            wc_final_data_df,
-            x="Bowling Ranking Difference",
-            nbins=20,
-            title="Distribution of Bowling Ranking Difference",
-            labels={"x": "Bowling Ranking Difference", "y": "Frequency"},
-            template="plotly_white",
-            color_discrete_sequence=px.colors.sequential.Viridis,  # Viridis palette
-        )
-    fig_bowling_ranking_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
-    fig_bowling_ranking_diff.update_layout(
-            xaxis_title="Bowling Ranking Difference",
-            yaxis_title="Frequency",
-            width=600,
-            height=400,
-        )
+    # Bowling Ranking Difference
+    fig_bowling_diff = px.histogram(
+        wc_final_data_df.sort_values(by="Bowling Ranking Difference", ascending=False),
+        x="Bowling Ranking Difference",
+        nbins=20,
+        title="Distribution of Bowling Ranking Difference",
+        labels={"x": "Bowling Ranking Difference", "y": "Frequency"},
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis
+    )
+    fig_bowling_diff.update_traces(marker_line_color="black", marker_line_width=1.5)
+    fig_bowling_diff.update_layout(xaxis_title="Bowling Ranking Difference", yaxis_title="Frequency", width=600, height=400)
 
-        # Display histograms side by side
     col1, col2 = st.columns(2)
     with col1:
-            st.plotly_chart(fig_batting_ranking_diff, use_container_width=True)
+        st.plotly_chart(fig_batting_diff, use_container_width=True)
     with col2:
-            st.plotly_chart(fig_bowling_ranking_diff, use_container_width=True)
+        st.plotly_chart(fig_bowling_diff, use_container_width=True)
 
-        # Line plot for ranking differences over time
+    # Trends Over Time
     st.write(
-            "The line plot tracks the changes in batting and bowling ranking differences over time. "
-            "The x-axis represents the match year, and the y-axis shows the ranking difference. "
-            "This plot helps visualize how the competitiveness between teams has evolved over time, "
-            "highlighting trends in batting and bowling strength disparities."
+        "### Trends Over Time\n"
+        "How has the competition changed over the years? This chart tracks the differences "
+        "in batting and bowling rankings through time, showcasing the evolving dynamics of cricket's rivalries."
+    )
+
+    # Line Plot for Trends
+    fig_trends = go.Figure()
+    fig_trends.add_trace(
+        go.Scatter(
+            x=wc_final_data_df["Match Year"],
+            y=wc_final_data_df["Batting Ranking Difference"],
+            mode="lines",
+            name="Batting Ranking Difference",
+            line=dict(color="rgb(68, 1, 84)"),
+            hovertext=wc_final_data_df.apply(
+                lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
+            ),
+            hoverinfo="text+y",
         )
-
-    fig = go.Figure()
-
-        # Batting Ranking Difference Line
-    fig.add_trace(
-            go.Scatter(
-                x=wc_final_data_df["Match Year"],
-                y=wc_final_data_df["Batting Ranking Difference"],
-                mode="lines",
-                name="Batting Ranking Difference",
-                line=dict(color="rgb(68, 1, 84)"),  # Viridis palette color
-                hovertext=wc_final_data_df.apply(
-                    lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
-                ),
-                hoverinfo="text+y",
-            )
+    )
+    fig_trends.add_trace(
+        go.Scatter(
+            x=wc_final_data_df["Match Year"],
+            y=wc_final_data_df["Bowling Ranking Difference"],
+            mode="lines",
+            name="Bowling Ranking Difference",
+            line=dict(color="rgb(33, 145, 140)", dash="dash"),
+            hovertext=wc_final_data_df.apply(
+                lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
+            ),
+            hoverinfo="text+y",
         )
+    )
+    fig_trends.update_layout(
+        title="Ranking Differences Over Time",
+        xaxis_title="Match Year",
+        yaxis_title="Ranking Difference",
+        legend_title="Ranking Type",
+        hovermode="x unified",
+        template="plotly_white",
+    )
+    st.plotly_chart(fig_trends)
 
-        # Bowling Ranking Difference Line
-    fig.add_trace(
-            go.Scatter(
-                x=wc_final_data_df["Match Year"],
-                y=wc_final_data_df["Bowling Ranking Difference"],
-                mode="lines",
-                name="Bowling Ranking Difference",
-                line=dict(color="rgb(33, 145, 140)", dash="dash"),  # Another Viridis color
-                hovertext=wc_final_data_df.apply(
-                    lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}", axis=1
-                ),
-                hoverinfo="text+y",
-            )
-        )
-
-        # Update layout for the line plot
-    fig.update_layout(
-            title="Batting and Bowling Ranking Differences Between Team 1 and Team 2 Over Time",
-            xaxis_title="Match Year",
-            yaxis_title="Ranking Difference",
-            legend_title="Ranking Type",
-            hovermode="x unified",
-            template="plotly_white",
-        )
-
-        # Display the line plot
-    st.plotly_chart(fig)
 
 
      
