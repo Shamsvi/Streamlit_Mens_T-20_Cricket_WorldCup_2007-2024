@@ -266,7 +266,7 @@ elif section_selector == ds_name:
             "Welcome!",
             "About the Data",
             "Cricket Stats",
-            "Data Insights",
+            "Feature Factory",
             "Make Predictions"
         ]
     )
@@ -1384,15 +1384,8 @@ elif ds_section == "About the Data":
 
 
 
-
-
-
-
-
-
-
-
 ############################################################################################################################
+
 
 elif ds_section == "Cricket Stats":
     st.subheader("Cricket Stats: Hidden Stories Behind the Numbers 🏏")
@@ -1571,220 +1564,175 @@ elif ds_section == "Cricket Stats":
 ############################################################################################################################
 
 
-# Feature Factory
+## Feature Engineering and Data Exploration
 
-# Feature Engineering and Data Transformation on the dataset
 elif ds_section == "Feature Factory":
-    st.subheader("Interactive Cricket Match Analysis")
-# 1. Derive "Home Advantage" feature
-# Assume teams have an advantage when the match is played in their home country
-# (Simple assumption based on team names and ground locations)
-    updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
-        lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
+    st.subheader("Feature Factory: Cricket Analytics Unveiled")
+    st.write(
+        """
+        In this section, we unveil the hidden stories behind cricket matches through engineered features. 
+        These features offer insights into team performance, match dynamics, and more. Explore one or 
+        multiple features to uncover patterns, correlations, and trends that make cricket analytics fascinating!
+        """
     )
-
-    # 2. Normalize ranking differences
-    # Normalize Batting and Bowling Ranking Difference columns to a 0-1 range for comparison
-    scaler = MinMaxScaler()
-    updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
-        updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
-    )
-
-    # 3. Create a feature for "Winning Margin Type"
-    # Categorize matches into "Close Match" or "Dominant Win" based on run/wicket margins
-    def categorize_margin(row):
-        if row['Margin (Runs)'] > 20 or row['Margin (Wickets)'] > 5:
-            return 'Dominant Win'
-        elif row['Margin (Runs)'] > 0 or row['Margin (Wickets)'] > 0:
-            return 'Close Match'
-        else:
-            return 'No Result'
-    updated_wc_final_data_df['Winning Margin Type'] = updated_wc_final_data_df.apply(categorize_margin, axis=1)
-
-    # 4. Aggregate performance by year
-    # Compute yearly aggregates for team performance metrics
-    updated_wc_final_data_df['Match Importance'] = updated_wc_final_data_df['T-20 Int Match'].apply(
-        lambda x: 'High' if x > 300 else 'Low'
-    )
-
-    # 5. Create a feature for "Match Importance"
-    # Assume later-stage matches (e.g., finals) are more important based on match numbers
-    updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
-        lambda x: x.rolling(window=3, min_periods=1).mean()
-    )
-    updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
-        lambda x: x.rolling(window=3, min_periods=1).mean()
-    )
-    updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
-        lambda x: x.rolling(window=3, min_periods=1).mean()
-    )
-
-    # 6. Team Strength Index
-    # Combine Batting and Bowling rankings to create a Team Strength Index for both teams
-
-    updated_wc_final_data_df['Team1 Strength Index'] = (
-        updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
-        updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
-    )
-    updated_wc_final_data_df['Team2 Strength Index'] = (
-        updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
-        updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
-    )
-
-    # 7. Match Outcome as a Binary Feature
-    # Indicate whether Team1 won the match
-
-    updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df['Winner'].apply(
-        lambda x: 1 if x == 'Team1' else 0
-    )
-
-    # 8.  Derived Features for Batting/Bowling Disparity
-    # Calculate batting and bowling disparities between Team1 and Team2
-
-    updated_wc_final_data_df['Batting Disparity'] = updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
-    updated_wc_final_data_df['Bowling Disparity'] = updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
-
-    # 9. Performance in High-Pressure Matches
-    # Track wins and margins in high-pressure matches
-
-    updated_wc_final_data_df['High Pressure Win'] = updated_wc_final_data_df.apply(
-        lambda row: 1 if row['Match Importance'] == 'High' and row['Team1 Win'] == 1 else 0, axis=1
-    )
-
-    # 10. Head-to-Head Records
-    # Aggregated stats for Team1 vs Team2 pairs
-
-    head_to_head_stats = updated_wc_final_data_df.groupby(['Team1', 'Team2']).agg({
-        'Team1 Win': 'sum',
-        'Margin (Runs)': 'mean',
-        'Margin (Wickets)': 'mean'
-    }).reset_index()
-    head_to_head_stats.rename(columns={
-        'Team1 Win': 'Head-to-Head Wins',
-        'Margin (Runs)': 'Avg Margin (Runs)',
-        'Margin (Wickets)': 'Avg Margin (Wickets)'
-    }, inplace=True)
-    updated_wc_final_data_df = updated_wc_final_data_df.merge(
-        head_to_head_stats, 
-        on=['Team1', 'Team2'], 
-        how='left', 
-        suffixes=('', '_head_to_head')
-    )
-
-    # 11. Seasonality Analysis
-    # Add features for the seasonality of the match
-
-    updated_wc_final_data_df['Season'] = updated_wc_final_data_df['Match Month'].apply(
-        lambda x: 'Winter' if x in [12, 1, 2] else 
-                'Spring' if x in [3, 4, 5] else 
-                'Summer' if x in [6, 7, 8] else 'Fall'
-    )
-
-
-    # Plots
-    import streamlit as st
-    import pandas as pd
-    import plotly.express as px
-
-    # Load the data
-    # Assuming updated_wc_final_data_df is already prepared and loaded as a DataFrame
-    # Replace this with the actual data loading code if needed
-    # updated_wc_final_data_df = pd.read_csv("path_to_data.csv")
-
     
-
-    # 1. Normalized Ranking Differences (Interactive Histogram)
-    st.subheader("Normalized Ranking Differences")
-    col1, col2 = st.columns(2)
-
-    with col1:
-        fig_batting = px.histogram(
-            updated_wc_final_data_df,
-            x='Normalized Batting Difference',
-            nbins=20,
-            title="Normalized Batting Difference",
-            labels={'x': 'Difference', 'y': 'Frequency'},
-            opacity=0.7,
-            color_discrete_sequence=px.colors.sequential.Viridis
+    # Apply Feature Engineering if not already done
+    if 'Home Advantage' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
+            lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
         )
-        st.plotly_chart(fig_batting)
 
-    with col2:
-        fig_bowling = px.histogram(
-            updated_wc_final_data_df,
-            x='Normalized Bowling Difference',
-            nbins=20,
-            title="Normalized Bowling Difference",
-            labels={'x': 'Difference', 'y': 'Frequency'},
-            opacity=0.7,
-            color_discrete_sequence=px.colors.sequential.Viridis
+    if 'Normalized Batting Difference' not in updated_wc_final_data_df.columns:
+        scaler = MinMaxScaler()
+        updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
+            updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
         )
-        st.plotly_chart(fig_bowling)
 
-    # 2. Distribution of Winning Margin Type (Interactive Bar Chart)
-    st.subheader("Distribution of Winning Margin Type")
-    winning_margin_counts = updated_wc_final_data_df['Winning Margin Type'].value_counts().reset_index()
-    winning_margin_counts.columns = ['Winning Margin Type', 'Count']
+    if 'Winning Margin Type' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Winning Margin Type'] = updated_wc_final_data_df.apply(
+            lambda row: 'Dominant Win' if row['Margin (Runs)'] > 20 or row['Margin (Wickets)'] > 5 else 
+                        ('Close Match' if row['Margin (Runs)'] > 0 or row['Margin (Wickets)'] > 0 else 'No Result'), 
+            axis=1
+        )
 
-    fig_margin = px.bar(
-        winning_margin_counts,
-        x='Winning Margin Type',
-        y='Count',
-        title="Distribution of Winning Margin Type",
-        text='Count',
-        color_discrete_sequence=px.colors.sequential.Viridis
-    )
-    st.plotly_chart(fig_margin)
-
-    # 3. Rolling Win % by Teams (Interactive Line Plot)
-    st.subheader("Rolling Win % by Teams")
-    team_selection = st.multiselect(
-        "Select Teams to Display",
-        options=updated_wc_final_data_df['Team1'].unique(),
-        default=updated_wc_final_data_df['Team1'].unique()[:5]
+    if 'Season' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Season'] = updated_wc_final_data_df['Match Month'].apply(
+            lambda x: 'Winter' if x in [12, 1, 2] else 
+                      'Spring' if x in [3, 4, 5] else 
+                      'Summer' if x in [6, 7, 8] else 'Fall'
+        )
+    if 'Rolling Win %' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
+        lambda x: x.rolling(window=3, min_periods=1).mean()
     )
 
-    rolling_win_data = updated_wc_final_data_df[updated_wc_final_data_df['Team1'].isin(team_selection)]
-    fig_rolling = px.line(
-        rolling_win_data,
-        x=rolling_win_data.index,
-        y='Rolling Win %',
-        color='Team1',
-        title="Rolling Win % by Teams",
-        labels={'x': 'Matches', 'Rolling Win %': 'Rolling Win %'},
-        color_discrete_sequence=px.colors.sequential.Viridis
-    )
-    st.plotly_chart(fig_rolling)
+    if 'Rolling Margin (Wickets)' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
+            lambda x: x.rolling(window=3, min_periods=1).mean()
+        )
 
-    # 4. Strength Index Comparison (Interactive Scatter Plot)
-    st.subheader("Team Strength Index Comparison")
-    fig_strength = px.scatter(
-        updated_wc_final_data_df,
-        x='Team1 Strength Index',
-        y='Team2 Strength Index',
-        color='Team1 Win',
-        size='Margin (Runs)',
-        title="Team Strength Index Comparison",
-        labels={'x': 'Team1 Strength Index', 'y': 'Team2 Strength Index'},
-        opacity=0.7,
-        color_discrete_sequence=px.colors.sequential.Viridis
-    )
-    st.plotly_chart(fig_strength)
+    if 'Rolling Margin (Runs)' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
+            lambda x: x.rolling(window=3, min_periods=1).mean()
+        )
 
-    # 5. High Pressure Match Wins by Winning Margin Type (Stacked Bar Plot)
-    st.subheader("High Pressure Match Wins by Winning Margin Type")
-    high_pressure_counts = updated_wc_final_data_df.groupby(['High Pressure Win', 'Winning Margin Type']).size().reset_index(name='Count')
-    fig_high_pressure = px.bar(
-        high_pressure_counts,
-        x='High Pressure Win',
-        y='Count',
-        color='Winning Margin Type',
-        title="High Pressure Match Wins by Winning Margin Type",
-        barmode='stack',
-        labels={'High Pressure Win': 'High Pressure Win (0 = No, 1 = Yes)', 'Count': 'Count'},
-        color_discrete_sequence=px.colors.sequential.Viridis
+    if 'Normalized Batting Difference' not in updated_wc_final_data_df.columns or 'Normalized Bowling Difference' not in updated_wc_final_data_df.columns:
+        scaler = MinMaxScaler()
+        updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
+            updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
+        )
+
+    if 'Team1 Strength Index' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Team1 Strength Index'] = (
+            updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
+            updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
+        )
+
+    if 'Team2 Strength Index' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Team2 Strength Index'] = (
+            updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
+            updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
+        )
+    if 'High Pressure Win' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Match Importance'] = updated_wc_final_data_df['T-20 Int Match'].apply(
+            lambda x: 'High' if x > 300 else 'Low'
+        )
+        updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df['Winner'].apply(
+            lambda x: 1 if x == 'Team1' else 0
+        )
+        updated_wc_final_data_df['High Pressure Win'] = updated_wc_final_data_df.apply(
+            lambda row: 1 if row['Match Importance'] == 'High' and row['Team1 Win'] == 1 else 0, axis=1
+        )
+    if 'Batting Disparity' not in updated_wc_final_data_df.columns:
+        if 'Team1 Avg Batting Ranking' in updated_wc_final_data_df.columns and 'Team2 Avg Batting Ranking' in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Batting Disparity'] = (
+                updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
+            )
+        else:
+            st.error("Batting Ranking columns are missing. Ensure `Team1 Avg Batting Ranking` and `Team2 Avg Batting Ranking` are present.")
+
+    if 'Bowling Disparity' not in updated_wc_final_data_df.columns:
+        if 'Team1 Avg Bowling Ranking' in updated_wc_final_data_df.columns and 'Team2 Avg Bowling Ranking' in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Bowling Disparity'] = (
+                updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
+            )
+        else:
+            st.error("Bowling Ranking columns are missing. Ensure `Team1 Avg Bowling Ranking` and `Team2 Avg Bowling Ranking` are present.")
+
+
+    # Feature Selector
+    st.sidebar.header("Feature Selector")
+    available_features = [
+        "Home Advantage",
+        "Normalized Batting Difference",
+        "Normalized Bowling Difference",
+        "Rolling Win %",
+        "Rolling Margin (Runs)",
+        "Rolling Margin (Wickets)",
+        "Team1 Strength Index",
+        "Team2 Strength Index",
+        "Batting Disparity",
+        "Bowling Disparity",
+        "High Pressure Win"
+    ]
+    selected_features = st.sidebar.multiselect(
+        "Select Features to Explore",
+        options=available_features,
+        default=["Home Advantage", "Normalized Batting Difference"]
     )
-    st.plotly_chart(fig_high_pressure)
+    
+    if selected_features:
+        # Filter selected features to only include numeric columns
+        numeric_features = updated_wc_final_data_df[selected_features].select_dtypes(include='number').columns.tolist()
+
+        if numeric_features:
+            # Display Correlation Matrix if multiple numeric features are selected
+            if len(numeric_features) > 1:
+                st.subheader("Feature Correlation")
+                correlation_data = updated_wc_final_data_df[numeric_features].corr()
+                fig_corr = px.imshow(
+                    correlation_data,
+                    title="Feature Correlation Matrix",
+                    labels={"color": "Correlation Coefficient"},
+                    color_continuous_scale=px.colors.sequential.Viridis,
+                    text_auto=True,
+                )
+                st.plotly_chart(fig_corr)
+
+            # Display histograms for each numeric feature
+            st.subheader("Feature Analysis")
+            for feature in numeric_features:
+                fig_hist = px.histogram(
+                    updated_wc_final_data_df,
+                    x=feature,
+                    nbins=20,
+                    title=f"Distribution of {feature}",
+                    labels={"x": feature, "y": "Frequency"},
+                    opacity=0.7,
+                    color_discrete_sequence=px.colors.sequential.Viridis,
+                )
+                st.plotly_chart(fig_hist)
+
+            # Scatter Plot for Relationships if two numeric features are selected
+            if len(numeric_features) == 2:
+                st.subheader("Feature Relationship")
+                feature_x, feature_y = numeric_features
+                fig_scatter = px.scatter(
+                    updated_wc_final_data_df,
+                    x=feature_x,
+                    y=feature_y,
+                    title=f"Relationship Between {feature_x} and {feature_y}",
+                    labels={feature_x: feature_x, feature_y: feature_y},
+                    color_discrete_sequence=px.colors.sequential.Viridis,
+                    opacity=0.7,
+                )
+                st.plotly_chart(fig_scatter)
+        else:
+            st.warning("None of the selected features are numeric. Please select numeric features to analyze correlations or distributions.")
+    else:
+        st.warning("Please select at least one feature to explore.")
+
+
 
 
 
