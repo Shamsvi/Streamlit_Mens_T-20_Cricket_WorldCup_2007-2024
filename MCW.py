@@ -1112,7 +1112,22 @@ elif ui_section == "Player Glory":
 # Search for your favourite teams and players
 elif ui_section == "Search Magic":
     st.subheader("Search Magic")
+    st.markdown("""
+    Welcome to the ultimate search tool for cricket enthusiasts! This section is all about putting you in control to explore your favorite teams, players, and matches. Whether you’re looking to relive the glory of your team in a specific year, find the captains who led them to victory, or discover how a player has performed over the years, this is the place for you.
 
+    **Find Your Team’s Legacy 🌏:**  
+    Type your favorite team's name and a specific year (or just one of them) to uncover their matches, the teams they faced, and the grounds where they played. You can also dive deeper into details like batting and bowling averages, match margins, and even the captain who led the team. A colorful and interactive display will bring all this information to life, giving you a fresh perspective on your team’s performance.
+
+    **Explore Player Achievements 🏅:**  
+    Enter the name of a cricketing star, and let the app take you on a journey through their career. Find out which teams they played for, the number of years they participated, and the span of their contributions. You’ll also discover if they ever wore the captain’s armband and led their team to glory.
+
+    **What You’ll See:**  
+    - An interactive visual showcasing how batting and bowling averages compare for your team across matches, with the size and color of the markers reflecting the match margins (whether it was a nail-biter or a landslide victory).
+    - A detailed table summarizing match stats, including opponents, captains, and outcomes.  
+    - Player-specific highlights, showing their years of participation and leadership roles, if any.  
+
+    It’s your personal gateway to explore cricket history, filled with insights and moments that matter the most to you. Dive in and uncover the magic!
+    """)
     # Load the datasets
     players_df = pd.read_csv(players_url)
     wc_final_data_df = pd.read_csv(final_dataset_url)
