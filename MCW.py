@@ -5,13 +5,23 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go  
 import re
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import seaborn as sns
 import base64
+import warnings
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, StandardScaler
+from itertools import combinations  # Add this import at the top of your script
 from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score
+)
 
 
 # Load the dataset
@@ -150,9 +160,114 @@ print(merged_df.head())
 
 
 #############################################################################################################################
+# Feature Engineering and Data Transformation on the dataset
+
+# 1. Derive "Home Advantage" feature
+# Assume teams have an advantage when the match is played in their home country
+# (Simple assumption based on team names and ground locations)
+updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
+    lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
+)
+
+# 2. Normalize ranking differences
+# Normalize Batting and Bowling Ranking Difference columns to a 0-1 range for comparison
+scaler = MinMaxScaler()
+updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
+    updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
+)
+
+# 3. Create a feature for "Winning Margin Type"
+# Categorize matches into "Close Match" or "Dominant Win" based on run/wicket margins
+def categorize_margin(row):
+    if row['Margin (Runs)'] > 20 or row['Margin (Wickets)'] > 5:
+        return 'Dominant Win'
+    elif row['Margin (Runs)'] > 0 or row['Margin (Wickets)'] > 0:
+        return 'Close Match'
+    else:
+        return 'No Result'
+updated_wc_final_data_df['Winning Margin Type'] = updated_wc_final_data_df.apply(categorize_margin, axis=1)
+
+# 4. Aggregate performance by year
+# Compute yearly aggregates for team performance metrics
+updated_wc_final_data_df['Match Importance'] = updated_wc_final_data_df['T-20 Int Match'].apply(
+    lambda x: 'High' if x > 300 else 'Low'
+)
+
+# 5. Create a feature for "Match Importance"
+# Assume later-stage matches (e.g., finals) are more important based on match numbers
+updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
+    lambda x: x.rolling(window=3, min_periods=1).mean()
+)
+updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
+    lambda x: x.rolling(window=3, min_periods=1).mean()
+)
+updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
+    lambda x: x.rolling(window=3, min_periods=1).mean()
+)
+
+# 6. Team Strength Index
+# Combine Batting and Bowling rankings to create a Team Strength Index for both teams
+
+updated_wc_final_data_df['Team1 Strength Index'] = (
+    updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
+    updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
+)
+updated_wc_final_data_df['Team2 Strength Index'] = (
+    updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
+    updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
+)
+
+# 7. Match Outcome as a Binary Feature
+# Indicate whether Team1 won the match
+
+updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df['Winner'].apply(
+    lambda x: 1 if x == 'Team1' else 0
+)
+
+# 8.  Derived Features for Batting/Bowling Disparity
+# Calculate batting and bowling disparities between Team1 and Team2
+
+updated_wc_final_data_df['Batting Disparity'] = updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
+updated_wc_final_data_df['Bowling Disparity'] = updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
+
+# 9. Performance in High-Pressure Matches
+# Track wins and margins in high-pressure matches
+
+updated_wc_final_data_df['High Pressure Win'] = updated_wc_final_data_df.apply(
+    lambda row: 1 if row['Match Importance'] == 'High' and row['Team1 Win'] == 1 else 0, axis=1
+)
+
+# 10. Head-to-Head Records
+# Aggregated stats for Team1 vs Team2 pairs
+
+head_to_head_stats = updated_wc_final_data_df.groupby(['Team1', 'Team2']).agg({
+    'Team1 Win': 'sum',
+    'Margin (Runs)': 'mean',
+    'Margin (Wickets)': 'mean'
+}).reset_index()
+head_to_head_stats.rename(columns={
+    'Team1 Win': 'Head-to-Head Wins',
+    'Margin (Runs)': 'Avg Margin (Runs)',
+    'Margin (Wickets)': 'Avg Margin (Wickets)'
+}, inplace=True)
+updated_wc_final_data_df = updated_wc_final_data_df.merge(
+    head_to_head_stats, 
+    on=['Team1', 'Team2'], 
+    how='left', 
+    suffixes=('', '_head_to_head')
+)
+
+# 11. Seasonality Analysis
+# Add features for the seasonality of the match
+
+updated_wc_final_data_df['Season'] = updated_wc_final_data_df['Match Month'].apply(
+    lambda x: 'Winter' if x in [12, 1, 2] else 
+              'Spring' if x in [3, 4, 5] else 
+              'Summer' if x in [6, 7, 8] else 'Fall'
+)
 
 
-
+#############################################################################################################################
 
 #EDA
 # Checking the correlation between missing values for each column [Margin (Runs) and Margin(Wickets)]
@@ -272,6 +387,7 @@ elif section_selector == ds_name:
             "About the Data",
             "Cricket Stats",
             "Feature Factory",
+            "Modeling the Game: Unveiling Predictions",
             "Forecasting the Next Champions"
         ]
     )
@@ -1815,6 +1931,17 @@ elif ds_section == "Feature Factory":
         # Encode 'Season' into numeric values
         season_mapping = {'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4}
         updated_wc_final_data_df['Season'] = updated_wc_final_data_df['Season'].map(season_mapping)
+    # Ensure `Team1 Win` is correctly derived
+    if 'Team1 Win' not in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df.apply(
+            lambda row: 1 if row['Winner'] == row['Team1'] else 0, axis=1
+        )
+
+    # Verify the values in `Team1 Win`
+    if updated_wc_final_data_df['Team1 Win'].nunique() <= 1:
+        st.error("The target column `Team1 Win` does not have enough class variability (e.g., only 0s or 1s). Ensure the `Winner` column is correctly populated.")
+    else:
+        st.success("The `Team1 Win` column is properly populated and ready for modeling.")
 
     # Feature Selector
     st.sidebar.header("Feature Selector")
@@ -1897,6 +2024,122 @@ elif ds_section == "Feature Factory":
 
 
 ############################################################################################################################
+
+
+elif ds_section == "Modeling the Game: Unveiling Predictions":
+    # Ensure Winner column exists and contains correct data
+    if 'Winner' in updated_wc_final_data_df.columns:
+        updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df.apply(
+            lambda row: 1 if row['Winner'] == row['Team1'] else 0, axis=1
+        )
+    else:
+        st.error("The 'Winner' column is missing or incorrectly populated in the dataset.")
+
+    if 'updated_wc_final_data_df' not in locals():
+        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
+    else:
+        st.write("### Dataset Preview")
+        st.write(updated_wc_final_data_df.head())
+
+
+    # Streamlit Section Header
+    st.title("Modeling: Cricket Match Outcome Prediction")
+    st.write("""
+    This section presents the performance of three machine learning models (Logistic Regression, Random Forest, and XGBoost) 
+    trained to predict cricket match outcomes. Each model is evaluated on key metrics: Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
+    """)
+
+    # Check if dataset is loaded
+    if 'updated_wc_final_data_df' not in locals():
+        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
+    else:
+        # Ensure required features are present
+        required_features = [
+            'Team1 Strength Index', 'Team2 Strength Index', 
+            'Batting Disparity', 'Bowling Disparity', 
+            'Normalized Batting Difference', 'Normalized Bowling Difference', 
+            'Rolling Win %', 'Rolling Margin (Runs)', 'Rolling Margin (Wickets)', 
+            'Home Advantage'
+        ]
+        
+        missing_features = [feature for feature in required_features if feature not in updated_wc_final_data_df.columns]
+        if missing_features:
+            st.error(f"The following features are missing: {missing_features}. Please preprocess the data.")
+        else:
+            # Features and Target
+            X = updated_wc_final_data_df[required_features]
+            y = updated_wc_final_data_df['Team1 Win']
+
+            # Ensure target column has variability
+            if y.nunique() <= 1:
+                st.error("Target variable 'Team1 Win' does not have enough variability. Please check the dataset.")
+            else:
+                # Balance dataset using SMOTE
+                smote = SMOTE(random_state=42)
+                X_balanced, y_balanced = smote.fit_resample(X, y)
+
+                # Train-test split
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
+                )
+
+                # Logistic Regression
+                st.subheader("Logistic Regression")
+                log_reg = LogisticRegression(max_iter=1000, random_state=42)
+                log_reg.fit(X_train, y_train)
+                y_pred_log_reg = log_reg.predict(X_test)
+
+                # Random Forest
+                st.subheader("Random Forest")
+                rf_clf = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=5)
+                rf_clf.fit(X_train, y_train)
+                y_pred_rf = rf_clf.predict(X_test)
+
+                # XGBoost with Grid Search
+                st.subheader("XGBoost")
+                xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
+                param_grid = {
+                    'n_estimators': [50, 100, 150],
+                    'max_depth': [3, 5, 7],
+                    'learning_rate': [0.01, 0.1, 0.2]
+                }
+                xgb_grid = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, scoring='f1', cv=3, verbose=0)
+                xgb_grid.fit(X_train, y_train)
+                best_xgb = xgb_grid.best_estimator_
+                y_pred_xgb = best_xgb.predict(X_test)
+
+                # Evaluation Function
+                def evaluate_model(y_true, y_pred, model_name):
+                    return {
+                        "Model": model_name,
+                        "Accuracy": accuracy_score(y_true, y_pred),
+                        "Precision": precision_score(y_true, y_pred),
+                        "Recall": recall_score(y_true, y_pred),
+                        "F1-Score": f1_score(y_true, y_pred),
+                        "ROC-AUC": roc_auc_score(y_true, y_pred)
+                    }
+
+                # Evaluate Models
+                log_reg_metrics = evaluate_model(y_test, y_pred_log_reg, "Logistic Regression")
+                rf_metrics = evaluate_model(y_test, y_pred_rf, "Random Forest")
+                xgb_metrics = evaluate_model(y_test, y_pred_xgb, "XGBoost")
+
+                # Display Results
+                results_df = pd.DataFrame([log_reg_metrics, rf_metrics, xgb_metrics])
+                st.subheader("Model Performance Comparison")
+                st.dataframe(results_df)
+
+                # Highlight Best Model
+                best_model = results_df.loc[results_df['F1-Score'].idxmax()]
+                st.write(f"### Best Model: **{best_model['Model']}** with an F1-Score of **{best_model['F1-Score']:.2f}**.")
+
+
+
+
+
+############################################################################################################################
+
+
 
 # Predictions
 elif ds_section == "Forecasting the Next Champions":
@@ -2069,14 +2312,6 @@ elif ds_section == "Forecasting the Next Champions":
         # Display Predictions
         st.plotly_chart(predictions_fig)
         st.write(f"### Predictions: The team most likely to win the ICC Men's T20 World Cup 2026 is **{win_counts.idxmax()}**!")
-
-
-
-
-############################################################################################################################
-
-
-
 
 
 
