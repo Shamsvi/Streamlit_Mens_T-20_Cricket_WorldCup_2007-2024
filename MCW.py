@@ -9,7 +9,8 @@ import seaborn as sns
 import base64
 import warnings
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, StandardScaler
-from itertools import combinations  # Add this import at the top of your script
+from itertools import combinations  
+from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split
@@ -2027,6 +2028,7 @@ elif ds_section == "Feature Factory":
 
 
 elif ds_section == "Modeling the Game: Unveiling Predictions":
+
     # Ensure Winner column exists and contains correct data
     if 'Winner' in updated_wc_final_data_df.columns:
         updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df.apply(
@@ -2035,103 +2037,117 @@ elif ds_section == "Modeling the Game: Unveiling Predictions":
     else:
         st.error("The 'Winner' column is missing or incorrectly populated in the dataset.")
 
-    if 'updated_wc_final_data_df' not in locals():
-        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
-    else:
-        st.write("### Dataset Preview")
-        st.write(updated_wc_final_data_df.head())
-
-
     # Streamlit Section Header
-    st.title("Modeling: Cricket Match Outcome Prediction")
+    st.title("Modeling the Game: Unveiling Predictions")
     st.write("""
-    This section presents the performance of three machine learning models (Logistic Regression, Random Forest, and XGBoost) 
-    trained to predict cricket match outcomes. Each model is evaluated on key metrics: Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
+    **Step into the Analytics Dugout!**
+    
+    In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. 
+    It's like having your own expert cricket analyst, but powered by algorithms! We compare the performances 
+    of Logistic Regression, Random Forest, and XGBoost to see which model hits the boundary and predicts match outcomes with the most accuracy.
     """)
 
-    # Check if dataset is loaded
-    if 'updated_wc_final_data_df' not in locals():
-        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
+    # Ensure required features are present
+    required_features = [
+        'Team1 Strength Index', 'Team2 Strength Index', 
+        'Batting Disparity', 'Bowling Disparity', 
+        'Normalized Batting Difference', 'Normalized Bowling Difference', 
+        'Rolling Win %', 'Rolling Margin (Runs)', 'Rolling Margin (Wickets)', 
+        'Home Advantage'
+    ]
+    missing_features = [feature for feature in required_features if feature not in updated_wc_final_data_df.columns]
+    if missing_features:
+        st.error(f"The following features are missing: {missing_features}. Please preprocess the data.")
     else:
-        # Ensure required features are present
-        required_features = [
-            'Team1 Strength Index', 'Team2 Strength Index', 
-            'Batting Disparity', 'Bowling Disparity', 
-            'Normalized Batting Difference', 'Normalized Bowling Difference', 
-            'Rolling Win %', 'Rolling Margin (Runs)', 'Rolling Margin (Wickets)', 
-            'Home Advantage'
-        ]
-        
-        missing_features = [feature for feature in required_features if feature not in updated_wc_final_data_df.columns]
-        if missing_features:
-            st.error(f"The following features are missing: {missing_features}. Please preprocess the data.")
+        # Features and Target
+        X = updated_wc_final_data_df[required_features]
+        y = updated_wc_final_data_df['Team1 Win']
+
+        # Ensure target column has variability
+        if y.nunique() <= 1:
+            st.error("Target variable 'Team1 Win' does not have enough variability. Please check the dataset.")
         else:
-            # Features and Target
-            X = updated_wc_final_data_df[required_features]
-            y = updated_wc_final_data_df['Team1 Win']
+            # Balance dataset using SMOTE
+            smote = SMOTE(random_state=42)
+            X_balanced, y_balanced = smote.fit_resample(X, y)
 
-            # Ensure target column has variability
-            if y.nunique() <= 1:
-                st.error("Target variable 'Team1 Win' does not have enough variability. Please check the dataset.")
-            else:
-                # Balance dataset using SMOTE
-                smote = SMOTE(random_state=42)
-                X_balanced, y_balanced = smote.fit_resample(X, y)
+            # Train-test split
+            X_train, X_test, y_train, y_test = train_test_split(
+                X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
+            )
 
-                # Train-test split
-                X_train, X_test, y_train, y_test = train_test_split(
-                    X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
-                )
+            # Logistic Regression
+            log_reg = LogisticRegression(max_iter=1000, random_state=42)
+            log_reg.fit(X_train, y_train)
+            y_pred_log_reg = log_reg.predict(X_test)
 
-                # Logistic Regression
-                st.subheader("Logistic Regression")
-                log_reg = LogisticRegression(max_iter=1000, random_state=42)
-                log_reg.fit(X_train, y_train)
-                y_pred_log_reg = log_reg.predict(X_test)
+            st.subheader("Logistic Regression")
+            log_reg_metrics = {
+                "Accuracy (%)": round(accuracy_score(y_test, y_pred_log_reg) * 100, 2),
+                "Precision (%)": round(precision_score(y_test, y_pred_log_reg) * 100, 2),
+                "Recall (%)": round(recall_score(y_test, y_pred_log_reg) * 100, 2),
+                "F1-Score (%)": round(f1_score(y_test, y_pred_log_reg) * 100, 2),
+                "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_log_reg) * 100, 2),
+            }
+            st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
+            st.write("""
+            Logistic Regression is a linear model that predicts match outcomes based on probabilities. 
+            It works best when the relationship between the features and the target variable is linear.
+            """)
 
-                # Random Forest
-                st.subheader("Random Forest")
-                rf_clf = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=5)
-                rf_clf.fit(X_train, y_train)
-                y_pred_rf = rf_clf.predict(X_test)
+            # Random Forest
+            rf_clf = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=5)
+            rf_clf.fit(X_train, y_train)
+            y_pred_rf = rf_clf.predict(X_test)
 
-                # XGBoost with Grid Search
-                st.subheader("XGBoost")
-                xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
-                param_grid = {
-                    'n_estimators': [50, 100, 150],
-                    'max_depth': [3, 5, 7],
-                    'learning_rate': [0.01, 0.1, 0.2]
-                }
-                xgb_grid = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, scoring='f1', cv=3, verbose=0)
-                xgb_grid.fit(X_train, y_train)
-                best_xgb = xgb_grid.best_estimator_
-                y_pred_xgb = best_xgb.predict(X_test)
+            st.subheader("Random Forest")
+            rf_metrics = {
+                "Accuracy (%)": round(accuracy_score(y_test, y_pred_rf) * 100, 2),
+                "Precision (%)": round(precision_score(y_test, y_pred_rf) * 100, 2),
+                "Recall (%)": round(recall_score(y_test, y_pred_rf) * 100, 2),
+                "F1-Score (%)": round(f1_score(y_test, y_pred_rf) * 100, 2),
+                "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_rf) * 100, 2),
+            }
+            st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
+            st.write("""
+            Random Forest is an ensemble learning method that constructs multiple decision trees to 
+            predict match outcomes. It handles non-linear relationships and provides feature importance scores.
+            """)
 
-                # Evaluation Function
-                def evaluate_model(y_true, y_pred, model_name):
-                    return {
-                        "Model": model_name,
-                        "Accuracy": accuracy_score(y_true, y_pred),
-                        "Precision": precision_score(y_true, y_pred),
-                        "Recall": recall_score(y_true, y_pred),
-                        "F1-Score": f1_score(y_true, y_pred),
-                        "ROC-AUC": roc_auc_score(y_true, y_pred)
-                    }
+            # XGBoost with Grid Search
+            xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
+            param_grid = {
+                'n_estimators': [50, 100, 150],
+                'max_depth': [3, 5, 7],
+                'learning_rate': [0.01, 0.1, 0.2]
+            }
+            xgb_grid = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, scoring='f1', cv=3, verbose=0)
+            xgb_grid.fit(X_train, y_train)
+            best_xgb = xgb_grid.best_estimator_
+            y_pred_xgb = best_xgb.predict(X_test)
 
-                # Evaluate Models
-                log_reg_metrics = evaluate_model(y_test, y_pred_log_reg, "Logistic Regression")
-                rf_metrics = evaluate_model(y_test, y_pred_rf, "Random Forest")
-                xgb_metrics = evaluate_model(y_test, y_pred_xgb, "XGBoost")
+            st.subheader("XGBoost")
+            xgb_metrics = {
+                "Accuracy (%)": round(accuracy_score(y_test, y_pred_xgb) * 100, 2),
+                "Precision (%)": round(precision_score(y_test, y_pred_xgb) * 100, 2),
+                "Recall (%)": round(recall_score(y_test, y_pred_xgb) * 100, 2),
+                "F1-Score (%)": round(f1_score(y_test, y_pred_xgb) * 100, 2),
+                "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_xgb) * 100, 2),
+            }
+            st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
+            st.write("""
+            XGBoost is a gradient boosting method that iteratively improves predictions by focusing on errors. 
+            It's highly efficient and can handle both linear and non-linear relationships effectively.
+            """)
 
-                # Display Results
-                results_df = pd.DataFrame([log_reg_metrics, rf_metrics, xgb_metrics])
-                st.subheader("Model Performance Comparison")
-                st.dataframe(results_df)
+            # Model Performance Comparison
+            results_df = pd.DataFrame([log_reg_metrics, rf_metrics, xgb_metrics])
+            st.subheader("Model Performance Comparison")
+            st.dataframe(results_df)
 
-                # Highlight Best Model
-                best_model = results_df.loc[results_df['F1-Score'].idxmax()]
-                st.write(f"### Best Model: **{best_model['Model']}** with an F1-Score of **{best_model['F1-Score']:.2f}**.")
+            # Highlight Best Model
+            best_model = results_df.loc[results_df['F1-Score (%)'].idxmax()]
+            st.write(f"### Best Model: **{best_model.name}** with an F1-Score of **{best_model['F1-Score (%)']}%**.")
 
 
 
