@@ -1286,7 +1286,7 @@ if ds_section  == "Welcome!":
     Step into the magical world of cricket analytics, where data meets discovery! This section is your secret laboratory to uncover the science behind every six, every wicket, and every thrilling World Cup moment. Whether you’re a curious mind or a data enthusiast, get ready to explore, experiment, and predict like never before.
 
     ### ✨ **Here’s What Awaits You:**  
-    - **Unravel Hidden Patterns**  
+    - **Cricket Stats: Unravel Hidden Patterns**  
       Dive into the **Distribution of Features** and uncover fascinating trends and stories hidden within the data. From player performances to team dynamics, you'll visualize how the numbers come alive.
 
     - **Create Your Own Magic**  
