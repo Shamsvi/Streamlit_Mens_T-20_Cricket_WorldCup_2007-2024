@@ -1283,18 +1283,23 @@ if ds_section  == "Welcome!":
     st.image(gif_url, use_container_width=True)
 
     st.markdown("""
-                    Are you ready to dive into the thrilling world of cricket? Whether you’re a die-hard fan, a stats geek, or just someone who loves the spirit of the game, this app is your one-stop destination to explore and analyze everything about the **Men's T20 World Cup**!
+    Step into the magical world of cricket analytics, where data meets discovery! This section is your secret laboratory to uncover the science behind every six, every wicket, and every thrilling World Cup moment. Whether you’re a curious mind or a data enthusiast, get ready to explore, experiment, and predict like never before.
 
-                    ✨ From nail-biting finishes to record-breaking performances, this app unpacks the data behind the drama. Explore:
+    ### ✨ **Here’s What Awaits You:**  
+    - **Unravel Hidden Patterns**  
+      Dive into the **Distribution of Features** and uncover fascinating trends and stories hidden within the data. From player performances to team dynamics, you'll visualize how the numbers come alive.
 
-                    - 🔥 **Team Battles**: Who dominated the field and who needs to up their game?
-                    - 🌍 **Ground Chronicles**: Which stadiums turned into fortresses for teams?
-                    - 🌟 **Player Glory**: Discover stars who shone brightest under pressure.
-                    - 🕵️‍♂️ **Search Magic**: Zero in on your favorite teams or players in an instant!
+    - **Create Your Own Magic**  
+      The **Feature Factory** is where the magic truly begins! Peek into the advanced techniques that fuel predictions, and understand the building blocks of data wizardry that make it all possible.
 
-                    🎉 **Why this app?**  
-                    Because cricket isn’t just a sport—it’s a passion, a science, and a celebration. And with this app, you can experience it all in an interactive, fun, and data-driven way.
-                    """)
+    - **Predict the Future**  
+      Enter the **Predictor’s Playground** and try your hand at being the ultimate cricket soothsayer. See which team has the best odds of taking home the trophy and test out the science of predictions!
+
+    ### 💡 **Who is This For?**  
+    If you love playing with numbers, solving mysteries, or just want to see the “behind-the-scenes” magic of cricket analytics, this is your playground. It’s not just stats; it’s the art of making every number count!
+
+    Get ready to blend cricket passion with data brilliance, and let’s create some magic together. 🏏✨
+    """)
 
         # Footer or call-to-action
     st.markdown("---")
