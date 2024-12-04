@@ -9,6 +9,10 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import seaborn as sns
 import base64
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+
 
 # Load the dataset
 matches_url = 'https://raw.githubusercontent.com/Shamsvi/CMSE-830/main/MidtermPorject/all_t20_world_cup_matches_results.csv'
@@ -252,6 +256,7 @@ if section_selector == ui_name:
             "Team Battles",
             "Ground Chronicles",
             "Player Glory",
+            "Forecasting the Next Champions",
             "Search Magic"
         ]
     )
@@ -1102,6 +1107,174 @@ elif ui_section == "Player Glory":
 
 
 
+############################################################################################################################
+
+
+
+# Predictions
+elif ui_section == "Forecasting the Next Champions":
+    # Placeholder for updated dataset
+    if 'updated_wc_final_data_df' not in locals():
+        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
+    else:
+        # Apply Feature Engineering
+        if 'Home Advantage' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
+                lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
+            )
+
+        if 'Normalized Batting Difference' not in updated_wc_final_data_df.columns:
+            scaler = MinMaxScaler()
+            updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
+                updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
+            )
+
+        if 'Rolling Win %' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
+                lambda x: x.rolling(window=3, min_periods=1).mean()
+            )
+
+        if 'Rolling Margin (Runs)' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
+                lambda x: x.rolling(window=3, min_periods=1).mean()
+            )
+
+        if 'Rolling Margin (Wickets)' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
+                lambda x: x.rolling(window=3, min_periods=1).mean()
+            )
+
+        if 'Team1 Strength Index' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Team1 Strength Index'] = (
+                updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
+                updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
+            )
+
+        if 'Team2 Strength Index' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Team2 Strength Index'] = (
+                updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
+                updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
+            )
+
+        if 'Batting Disparity' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Batting Disparity'] = (
+                updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
+            )
+
+        if 'Bowling Disparity' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Bowling Disparity'] = (
+                updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
+            )
+
+        # Forecasting Section
+        st.subheader("Predictions: Who Will Reign Supreme?")
+        st.write("""
+        The battle for cricket supremacy intensifies as we bring you an exciting glimpse into the future. 
+        Imagine every team competing in a dramatic round-robin format, each match filled with edge-of-the-seat moments. 
+        Who will emerge as the ultimate champion of the ICC Men's T20 World Cup 2026? 
+
+        With insights derived from historical performances, team strengths, and other key factors, 
+        this prediction reveals the team most likely to etch their name in cricketing glory.
+        Let's dive into the results!
+    """)
+        # Unique teams from the dataset
+        teams = updated_wc_final_data_df['Team1'].unique()
+
+        # Simulate Matchups
+        matchups = []
+        for i in range(len(teams)):
+            for j in range(i + 1, len(teams)):
+                matchups.append({"Team_A": teams[i], "Team_B": teams[j]})
+
+        simulated_data = pd.DataFrame(matchups)
+
+        # Calculate Historical Averages
+        team_stats = updated_wc_final_data_df.groupby('Team1').agg({
+            'Team1 Strength Index': 'mean',
+            'Batting Disparity': 'mean',
+            'Bowling Disparity': 'mean',
+            'Normalized Batting Difference': 'mean',
+            'Normalized Bowling Difference': 'mean',
+            'Rolling Win %': 'mean',
+            'Rolling Margin (Runs)': 'mean',
+            'Rolling Margin (Wickets)': 'mean',
+            'Home Advantage': 'mean'
+        }).reset_index()
+
+        # Merge Features for Both Teams
+        simulated_data = simulated_data.merge(team_stats, how='left', left_on='Team_A', right_on='Team1')
+        simulated_data = simulated_data.merge(
+            team_stats, how='left', left_on='Team_B', right_on='Team1', suffixes=('_A', '_B')
+        )
+
+        # Create Relative Difference Features
+        simulated_data['Team1 Strength Index'] = simulated_data['Team1 Strength Index_A']
+        simulated_data['Team2 Strength Index'] = simulated_data['Team1 Strength Index_B']
+        simulated_data['Batting Disparity'] = simulated_data['Batting Disparity_A'] - simulated_data['Batting Disparity_B']
+        simulated_data['Bowling Disparity'] = simulated_data['Bowling Disparity_A'] - simulated_data['Bowling Disparity_B']
+        simulated_data['Normalized Batting Difference'] = simulated_data['Normalized Batting Difference_A'] - simulated_data['Normalized Batting Difference_B']
+        simulated_data['Normalized Bowling Difference'] = simulated_data['Normalized Bowling Difference_A'] - simulated_data['Normalized Bowling Difference_B']
+        simulated_data['Rolling Win %'] = simulated_data['Rolling Win %_A'] - simulated_data['Rolling Win %_B']
+        simulated_data['Rolling Margin (Runs)'] = simulated_data['Rolling Margin (Runs)_A'] - simulated_data['Rolling Margin (Runs)_B']
+        simulated_data['Rolling Margin (Wickets)'] = simulated_data['Rolling Margin (Wickets)_A'] - simulated_data['Rolling Margin (Wickets)_B']
+        simulated_data['Home Advantage'] = simulated_data['Home Advantage_A'] - simulated_data['Home Advantage_B']
+
+        # Define Features for Prediction
+        features = [
+            'Team1 Strength Index',
+            'Team2 Strength Index',
+            'Batting Disparity',
+            'Bowling Disparity',
+            'Normalized Batting Difference',
+            'Normalized Bowling Difference',
+            'Rolling Win %',
+            'Rolling Margin (Runs)',
+            'Rolling Margin (Wickets)',
+            'Home Advantage'
+        ]
+
+        # Train a Random Forest model
+        updated_wc_final_data_df['Target'] = updated_wc_final_data_df['Winner'].apply(
+            lambda x: 0 if x == 'Team1' else 1
+        )
+        X = updated_wc_final_data_df[features]
+        y = updated_wc_final_data_df['Target']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        rf_clf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_clf.fit(X_train, y_train)
+
+        # Predict Match Outcomes
+        simulated_data['Predicted Team_A Win'] = rf_clf.predict(simulated_data[features])
+
+        # Aggregate Results
+        win_counts = pd.concat([
+            simulated_data.loc[simulated_data['Predicted Team_A Win'] == 1, 'Team_A'],
+            simulated_data.loc[simulated_data['Predicted Team_A Win'] == 0, 'Team_B']
+        ]).value_counts()
+
+        # Plot the Predicted Win Counts
+        predictions_fig = px.bar(
+            win_counts,
+            x=win_counts.index,
+            y=win_counts.values,
+            title="Predicted Win Counts for Each Team in ICC Men's T20 World Cup 2026",
+            labels={'x': 'Teams', 'y': 'Predicted Wins'},
+            color=win_counts.values,
+            color_continuous_scale=px.colors.sequential.Viridis
+        )
+        predictions_fig.update_layout(
+            xaxis_title="Teams",
+            yaxis_title="Predicted Wins",
+            xaxis_tickangle=-45
+        )
+
+        # Display Predictions
+        st.plotly_chart(predictions_fig)
+        st.write(f"### Predictions: The team most likely to win the ICC Men's T20 World Cup 2026 is **{win_counts.idxmax()}**!")
+
+
+
 
 
 
@@ -1726,187 +1899,181 @@ elif ds_section == "Feature Factory":
 ############################################################################################################################
 
 # Predictions
+elif ds_section == "Forecasting the Next Champions":
+    # Placeholder for updated dataset
+    if 'updated_wc_final_data_df' not in locals():
+        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
+    else:
+        # Apply Feature Engineering
+        if 'Home Advantage' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
+                lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
+            )
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
+        if 'Normalized Batting Difference' not in updated_wc_final_data_df.columns:
+            scaler = MinMaxScaler()
+            updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
+                updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
+            )
 
-# Placeholder for updated dataset
-if 'updated_wc_final_data_df' not in locals():
-    st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
-else:
-    # Apply Feature Engineering
-    if 'Home Advantage' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
-            lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
+        if 'Rolling Win %' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
+                lambda x: x.rolling(window=3, min_periods=1).mean()
+            )
+
+        if 'Rolling Margin (Runs)' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
+                lambda x: x.rolling(window=3, min_periods=1).mean()
+            )
+
+        if 'Rolling Margin (Wickets)' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
+                lambda x: x.rolling(window=3, min_periods=1).mean()
+            )
+
+        if 'Team1 Strength Index' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Team1 Strength Index'] = (
+                updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
+                updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
+            )
+
+        if 'Team2 Strength Index' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Team2 Strength Index'] = (
+                updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
+                updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
+            )
+
+        if 'Batting Disparity' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Batting Disparity'] = (
+                updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
+            )
+
+        if 'Bowling Disparity' not in updated_wc_final_data_df.columns:
+            updated_wc_final_data_df['Bowling Disparity'] = (
+                updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
+            )
+
+        # Forecasting Section
+        st.subheader("Predictions: Who Will Reign Supreme?")
+        st.write("""
+        Get ready to dive into the exciting world of cricket analytics! 
+        In this section, we simulate matchups between all teams in a thrilling round-robin format. 
+        Using historical averages and advanced statistics, we predict the most likely winner of 
+        the ICC Men's T20 World Cup 2026. Here's how it works:
+        
+        **Key Metrics Used**:
+        - Team strength index combining batting and bowling performance.
+        - Rolling averages for recent performance trends in wins and margins.
+        - Home advantage as a factor.
+        - Disparities in batting and bowling rankings between teams.
+
+        **Prediction Process**:
+        - Historical data is aggregated to calculate performance metrics for each team.
+        - A round-robin simulation generates matchups between all teams.
+        - Using a trained Random Forest model, outcomes of each matchup are predicted.
+        - The model identifies the team most likely to emerge victorious based on win counts.
+        """)
+
+        # Unique teams from the dataset
+        teams = updated_wc_final_data_df['Team1'].unique()
+
+        # Simulate Matchups
+        matchups = []
+        for i in range(len(teams)):
+            for j in range(i + 1, len(teams)):
+                matchups.append({"Team_A": teams[i], "Team_B": teams[j]})
+
+        simulated_data = pd.DataFrame(matchups)
+
+        # Calculate Historical Averages
+        team_stats = updated_wc_final_data_df.groupby('Team1').agg({
+            'Team1 Strength Index': 'mean',
+            'Batting Disparity': 'mean',
+            'Bowling Disparity': 'mean',
+            'Normalized Batting Difference': 'mean',
+            'Normalized Bowling Difference': 'mean',
+            'Rolling Win %': 'mean',
+            'Rolling Margin (Runs)': 'mean',
+            'Rolling Margin (Wickets)': 'mean',
+            'Home Advantage': 'mean'
+        }).reset_index()
+
+        # Merge Features for Both Teams
+        simulated_data = simulated_data.merge(team_stats, how='left', left_on='Team_A', right_on='Team1')
+        simulated_data = simulated_data.merge(
+            team_stats, how='left', left_on='Team_B', right_on='Team1', suffixes=('_A', '_B')
         )
 
-    if 'Normalized Batting Difference' not in updated_wc_final_data_df.columns:
-        scaler = MinMaxScaler()
-        updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
-            updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
+        # Create Relative Difference Features
+        simulated_data['Team1 Strength Index'] = simulated_data['Team1 Strength Index_A']
+        simulated_data['Team2 Strength Index'] = simulated_data['Team1 Strength Index_B']
+        simulated_data['Batting Disparity'] = simulated_data['Batting Disparity_A'] - simulated_data['Batting Disparity_B']
+        simulated_data['Bowling Disparity'] = simulated_data['Bowling Disparity_A'] - simulated_data['Bowling Disparity_B']
+        simulated_data['Normalized Batting Difference'] = simulated_data['Normalized Batting Difference_A'] - simulated_data['Normalized Batting Difference_B']
+        simulated_data['Normalized Bowling Difference'] = simulated_data['Normalized Bowling Difference_A'] - simulated_data['Normalized Bowling Difference_B']
+        simulated_data['Rolling Win %'] = simulated_data['Rolling Win %_A'] - simulated_data['Rolling Win %_B']
+        simulated_data['Rolling Margin (Runs)'] = simulated_data['Rolling Margin (Runs)_A'] - simulated_data['Rolling Margin (Runs)_B']
+        simulated_data['Rolling Margin (Wickets)'] = simulated_data['Rolling Margin (Wickets)_A'] - simulated_data['Rolling Margin (Wickets)_B']
+        simulated_data['Home Advantage'] = simulated_data['Home Advantage_A'] - simulated_data['Home Advantage_B']
+
+        # Define Features for Prediction
+        features = [
+            'Team1 Strength Index',
+            'Team2 Strength Index',
+            'Batting Disparity',
+            'Bowling Disparity',
+            'Normalized Batting Difference',
+            'Normalized Bowling Difference',
+            'Rolling Win %',
+            'Rolling Margin (Runs)',
+            'Rolling Margin (Wickets)',
+            'Home Advantage'
+        ]
+
+        # Train a Random Forest model
+        updated_wc_final_data_df['Target'] = updated_wc_final_data_df['Winner'].apply(
+            lambda x: 0 if x == 'Team1' else 1
+        )
+        X = updated_wc_final_data_df[features]
+        y = updated_wc_final_data_df['Target']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        rf_clf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_clf.fit(X_train, y_train)
+
+        # Predict Match Outcomes
+        simulated_data['Predicted Team_A Win'] = rf_clf.predict(simulated_data[features])
+
+        # Aggregate Results
+        win_counts = pd.concat([
+            simulated_data.loc[simulated_data['Predicted Team_A Win'] == 1, 'Team_A'],
+            simulated_data.loc[simulated_data['Predicted Team_A Win'] == 0, 'Team_B']
+        ]).value_counts()
+
+        # Plot the Predicted Win Counts
+        predictions_fig = px.bar(
+            win_counts,
+            x=win_counts.index,
+            y=win_counts.values,
+            title="Predicted Win Counts for Each Team in ICC Men's T20 World Cup 2026",
+            labels={'x': 'Teams', 'y': 'Predicted Wins'},
+            color=win_counts.values,
+            color_continuous_scale=px.colors.sequential.Viridis
+        )
+        predictions_fig.update_layout(
+            xaxis_title="Teams",
+            yaxis_title="Predicted Wins",
+            xaxis_tickangle=-45
         )
 
-    if 'Rolling Win %' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
-            lambda x: x.rolling(window=3, min_periods=1).mean()
-        )
-
-    if 'Rolling Margin (Runs)' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
-            lambda x: x.rolling(window=3, min_periods=1).mean()
-        )
-
-    if 'Rolling Margin (Wickets)' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
-            lambda x: x.rolling(window=3, min_periods=1).mean()
-        )
-
-    if 'Team1 Strength Index' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Team1 Strength Index'] = (
-            updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
-            updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
-        )
-
-    if 'Team2 Strength Index' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Team2 Strength Index'] = (
-            updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
-            updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
-        )
-
-    if 'Batting Disparity' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Batting Disparity'] = (
-            updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
-        )
-
-    if 'Bowling Disparity' not in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df['Bowling Disparity'] = (
-            updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
-        )
-
-    # Forecasting Section
-    st.subheader("Predictions: Who Will Reign Supreme?")
-    st.write("""
-    Get ready to dive into the exciting world of cricket analytics! 
-    In this section, we simulate matchups between all teams in a thrilling round-robin format. 
-    Using historical averages and advanced statistics, we predict the most likely winner of 
-    the ICC Men's T20 World Cup 2026. Here's how it works:
-    
-     **Key Metrics Used**:
-      - Team strength index combining batting and bowling performance.
-      - Rolling averages for recent performance trends in wins and margins.
-      - Home advantage as a factor.
-      - Disparities in batting and bowling rankings between teams.
-
-     **Prediction Process**:
-      - Historical data is aggregated to calculate performance metrics for each team.
-      - A round-robin simulation generates matchups between all teams.
-      - Using a trained Random Forest model, outcomes of each matchup are predicted.
-      - The model identifies the team most likely to emerge victorious based on win counts.
-    """)
-
-    # Unique teams from the dataset
-    teams = updated_wc_final_data_df['Team1'].unique()
-
-    # Simulate Matchups
-    matchups = []
-    for i in range(len(teams)):
-        for j in range(i + 1, len(teams)):
-            matchups.append({"Team_A": teams[i], "Team_B": teams[j]})
-
-    simulated_data = pd.DataFrame(matchups)
-
-    # Calculate Historical Averages
-    team_stats = updated_wc_final_data_df.groupby('Team1').agg({
-        'Team1 Strength Index': 'mean',
-        'Batting Disparity': 'mean',
-        'Bowling Disparity': 'mean',
-        'Normalized Batting Difference': 'mean',
-        'Normalized Bowling Difference': 'mean',
-        'Rolling Win %': 'mean',
-        'Rolling Margin (Runs)': 'mean',
-        'Rolling Margin (Wickets)': 'mean',
-        'Home Advantage': 'mean'
-    }).reset_index()
-
-    # Merge Features for Both Teams
-    simulated_data = simulated_data.merge(team_stats, how='left', left_on='Team_A', right_on='Team1')
-    simulated_data = simulated_data.merge(
-        team_stats, how='left', left_on='Team_B', right_on='Team1', suffixes=('_A', '_B')
-    )
-
-    # Create Relative Difference Features
-    simulated_data['Team1 Strength Index'] = simulated_data['Team1 Strength Index_A']
-    simulated_data['Team2 Strength Index'] = simulated_data['Team1 Strength Index_B']
-    simulated_data['Batting Disparity'] = simulated_data['Batting Disparity_A'] - simulated_data['Batting Disparity_B']
-    simulated_data['Bowling Disparity'] = simulated_data['Bowling Disparity_A'] - simulated_data['Bowling Disparity_B']
-    simulated_data['Normalized Batting Difference'] = simulated_data['Normalized Batting Difference_A'] - simulated_data['Normalized Batting Difference_B']
-    simulated_data['Normalized Bowling Difference'] = simulated_data['Normalized Bowling Difference_A'] - simulated_data['Normalized Bowling Difference_B']
-    simulated_data['Rolling Win %'] = simulated_data['Rolling Win %_A'] - simulated_data['Rolling Win %_B']
-    simulated_data['Rolling Margin (Runs)'] = simulated_data['Rolling Margin (Runs)_A'] - simulated_data['Rolling Margin (Runs)_B']
-    simulated_data['Rolling Margin (Wickets)'] = simulated_data['Rolling Margin (Wickets)_A'] - simulated_data['Rolling Margin (Wickets)_B']
-    simulated_data['Home Advantage'] = simulated_data['Home Advantage_A'] - simulated_data['Home Advantage_B']
-
-    # Define Features for Prediction
-    features = [
-        'Team1 Strength Index',
-        'Team2 Strength Index',
-        'Batting Disparity',
-        'Bowling Disparity',
-        'Normalized Batting Difference',
-        'Normalized Bowling Difference',
-        'Rolling Win %',
-        'Rolling Margin (Runs)',
-        'Rolling Margin (Wickets)',
-        'Home Advantage'
-    ]
-
-    # Train a Random Forest model
-    updated_wc_final_data_df['Target'] = updated_wc_final_data_df['Winner'].apply(
-        lambda x: 0 if x == 'Team1' else 1
-    )
-    X = updated_wc_final_data_df[features]
-    y = updated_wc_final_data_df['Target']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    rf_clf = RandomForestClassifier(n_estimators=100, random_state=42)
-    rf_clf.fit(X_train, y_train)
-
-    # Predict Match Outcomes
-    simulated_data['Predicted Team_A Win'] = rf_clf.predict(simulated_data[features])
-
-    # Aggregate Results
-    win_counts = pd.concat([
-        simulated_data.loc[simulated_data['Predicted Team_A Win'] == 1, 'Team_A'],
-        simulated_data.loc[simulated_data['Predicted Team_A Win'] == 0, 'Team_B']
-    ]).value_counts()
-
-    # Plot the Predicted Win Counts
-    predictions_fig = px.bar(
-        win_counts,
-        x=win_counts.index,
-        y=win_counts.values,
-        title="Predicted Win Counts for Each Team in ICC Men's T20 World Cup 2026",
-        labels={'x': 'Teams', 'y': 'Predicted Wins'},
-        color=win_counts.values,
-        color_continuous_scale=px.colors.sequential.Viridis
-    )
-    predictions_fig.update_layout(
-        xaxis_title="Teams",
-        yaxis_title="Predicted Wins",
-        xaxis_tickangle=-45
-    )
-
-    # Display Predictions
-    st.plotly_chart(predictions_fig)
-    st.write(f"### Predictions: The team most likely to win the ICC Men's T20 World Cup 2026 is **{win_counts.idxmax()}**!")
+        # Display Predictions
+        st.plotly_chart(predictions_fig)
+        st.write(f"### Predictions: The team most likely to win the ICC Men's T20 World Cup 2026 is **{win_counts.idxmax()}**!")
 
 
 
 
+############################################################################################################################
 
 
 
