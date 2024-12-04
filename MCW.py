@@ -1623,8 +1623,8 @@ Get ready to blend cricket passion with data brilliance, and let’s create some
 elif ds_section == "About the Data":
     st.subheader("About the Data")
     st.markdown("""
-    Welcome to the **Dataset Overview** section! Here’s everything you need to know about the data that powers this app.
-    We’ve got several datasets, each packed with fascinating cricketing stats and insights. Let’s break them down:
+    Welcome to the **Dataset Overview** section! Here’s everything you need to know about the data that powers this app.  
+    Our dataset is taken from [Kaggle](https://www.kaggle.com/datasets/kamalisrani/mens-t20-cwc-dataset-2007-2004), a hub of diverse and high-quality data. It’s packed with fascinating cricketing stats and insights, allowing us to analyze and predict the thrilling dynamics of the Men’s T20 World Cup.  Let’s break them down:
 
     ### 1. **All T20 World Cup Matches Results**
     This dataset captures the essence of every match contested in all World Cup editions. Here’s what it includes:
