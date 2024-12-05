@@ -2208,7 +2208,7 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     }
     return metrics
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def train_xgboost(X_train, y_train, X_test, y_test):
     xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
     param_grid = {
@@ -2228,6 +2228,8 @@ def train_xgboost(X_train, y_train, X_test, y_test):
         "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred) * 100, 2),
     }
     return metrics
+
+
 
 # Main Section for Modeling
 if ds_section == "Modeling the Game: Unveiling Predictions":
