@@ -2258,7 +2258,7 @@ elif ds_section == "Forecasting the Next Champions":
         # Forecasting Section
         st.subheader("Predictions: Who Will Reign Supreme?")
         st.write("""
-        Get ready to dive into the exciting world of cricket analytics! 
+        Let's dive into the exciting world of cricket analytics! 
         In this section, we simulate matchups between all teams in a thrilling round-robin format. 
         Using historical averages and advanced statistics, we predict the most likely winner of 
         the ICC Men's T20 World Cup 2026. Here's how it works:
