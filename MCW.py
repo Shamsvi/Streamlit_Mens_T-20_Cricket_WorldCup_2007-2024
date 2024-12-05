@@ -317,22 +317,25 @@ with st.expander("📖 How to Navigate This App"):
     This app is designed to provide **cricket enthusiasts** and **data science aficionados** with an engaging and insightful experience. Whether you’re here to relive glorious matches or dive into predictive analytics, this app has something for everyone!
 
     ### 🔍 Two Aspects of This App:
-    1. **🎭 Fan Favorites (User Interface)**  
-       This section is tailored for cricket fans who want to explore:
-       - **Matches and Wins by each Team**: Dive into performance stats of your favorite teams across matches.
-       - **Grounds**: Gain insights into match outcomes based on specific venues.
-       - **Participation**: Uncover trends in player participation across the years.
-       - **Search For Your Favourite Teams and Players**: Quickly search and explore details about your beloved teams or players.
+     1. **🎭 Fan Favorites**  
+       Perfect for cricket lovers to discover:
+                
+        - **Team Battles**: See which teams ruled the field and who could improve.
+        - **Ground Chronicles**: Discover stadiums where teams thrived.
+        - **Player Highlights**: Check out star performances under pressure.
+        - **Forecasting Champions**: Get a glimpse of who might win the next T20 World Cup.
+        - **Quick Search**: Find stats on your favorite teams or players.
 
-       Perfect for fans who want to relive the excitement of cricket or analyze historical performances in a simple, visual way.
+                
+    2. **🧪 Data Insights**  
+        Aimed at users who love working with data and want to see the science behind cricket analytics:
+       - **About the Data**: Understand the dataset powering the app.
+       - **Feature Exploration**: Dive into trends and key metrics.
+       - **Feature Engineering**: See how raw data transforms into actionable insights.
+       - **Modeling Matches**: Learn how machine learning predicts outcomes.
+       - **Champion Forecasts**: Use advanced models to predict the next T20 winner.
 
-    2. **🧪 Data Wizardry (Data Science Interface)**  
-       This section is for data enthusiasts who want to:
-       - **Distribution of Features**: Visualize and understand the distribution of key features in the dataset.
-       - **Feature Factory**: Explore advanced feature engineering insights that power predictions.
-       - **Predictor's Playground**: Experiment with machine learning models, view their predictions, and see which team might win the next World Cup!
 
-       Aimed at users who love working with data and want to see the science behind cricket analytics.
 
     ### 🏏 How to Use the App:
     - Use the **sidebar** to switch between the two sections: 🎭 Fan Favorites and 🧪 Data Wizardry.
