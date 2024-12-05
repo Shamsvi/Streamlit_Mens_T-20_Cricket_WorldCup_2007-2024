@@ -2146,6 +2146,9 @@ elif ds_section == "Feature Factory":
 ############################################################################################################################
 
 
+
+
+
 import streamlit as st
 import pandas as pd
 from imblearn.over_sampling import SMOTE
@@ -2155,7 +2158,6 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
-# Preprocess data function with caching
 @st.cache_data
 def preprocess_data(df, required_features):
     """
@@ -2177,6 +2179,55 @@ def preprocess_data(df, required_features):
         X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
     )
     return X_train, X_test, y_train, y_test, None
+
+@st.cache_data
+def train_logistic_regression(X_train, y_train, X_test, y_test):
+    log_reg = LogisticRegression(max_iter=1000, random_state=42)
+    log_reg.fit(X_train, y_train)
+    y_pred = log_reg.predict(X_test)
+    metrics = {
+        "Accuracy (%)": round(accuracy_score(y_test, y_pred) * 100, 2),
+        "Precision (%)": round(precision_score(y_test, y_pred) * 100, 2),
+        "Recall (%)": round(recall_score(y_test, y_pred) * 100, 2),
+        "F1-Score (%)": round(f1_score(y_test, y_pred) * 100, 2),
+        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred) * 100, 2),
+    }
+    return metrics
+
+@st.cache_data
+def train_random_forest(X_train, y_train, X_test, y_test):
+    rf_clf = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=5)
+    rf_clf.fit(X_train, y_train)
+    y_pred = rf_clf.predict(X_test)
+    metrics = {
+        "Accuracy (%)": round(accuracy_score(y_test, y_pred) * 100, 2),
+        "Precision (%)": round(precision_score(y_test, y_pred) * 100, 2),
+        "Recall (%)": round(recall_score(y_test, y_pred) * 100, 2),
+        "F1-Score (%)": round(f1_score(y_test, y_pred) * 100, 2),
+        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred) * 100, 2),
+    }
+    return metrics
+
+@st.cache_data
+def train_xgboost(X_train, y_train, X_test, y_test):
+    xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
+    param_grid = {
+        'n_estimators': [50, 100, 150],
+        'max_depth': [3, 5, 7],
+        'learning_rate': [0.01, 0.1, 0.2]
+    }
+    xgb_grid = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, scoring='f1', cv=3, verbose=0)
+    xgb_grid.fit(X_train, y_train)
+    best_xgb = xgb_grid.best_estimator_
+    y_pred = best_xgb.predict(X_test)
+    metrics = {
+        "Accuracy (%)": round(accuracy_score(y_test, y_pred) * 100, 2),
+        "Precision (%)": round(precision_score(y_test, y_pred) * 100, 2),
+        "Recall (%)": round(recall_score(y_test, y_pred) * 100, 2),
+        "F1-Score (%)": round(f1_score(y_test, y_pred) * 100, 2),
+        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred) * 100, 2),
+    }
+    return metrics
 
 # Main Section for Modeling
 if ds_section == "Modeling the Game: Unveiling Predictions":
@@ -2216,65 +2267,29 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
             st.error(issue)
         st.stop()
 
-    # Logistic Regression
-    log_reg = LogisticRegression(max_iter=1000, random_state=42)
-    log_reg.fit(X_train, y_train)
-    y_pred_log_reg = log_reg.predict(X_test)
-    log_reg_metrics = {
-        "Accuracy (%)": round(accuracy_score(y_test, y_pred_log_reg) * 100, 2),
-        "Precision (%)": round(precision_score(y_test, y_pred_log_reg) * 100, 2),
-        "Recall (%)": round(recall_score(y_test, y_pred_log_reg) * 100, 2),
-        "F1-Score (%)": round(f1_score(y_test, y_pred_log_reg) * 100, 2),
-        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_log_reg) * 100, 2),
-    }
+    # Train Models
     st.subheader("Logistic Regression")
+    log_reg_metrics = train_logistic_regression(X_train, y_train, X_test, y_test)
     st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
     st.write("""
-    **Logistic Regression:** A linear model that predicts probabilities of outcomes and classifies them. 
-    It is particularly effective when the relationships between features and the target variable are linear.
+    Logistic Regression is a linear model that predicts match outcomes based on probabilities. 
+    It works best when the relationship between the features and the target variable is linear.
     """)
 
-    # Random Forest
-    rf_clf = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=5)
-    rf_clf.fit(X_train, y_train)
-    y_pred_rf = rf_clf.predict(X_test)
-    rf_metrics = {
-        "Accuracy (%)": round(accuracy_score(y_test, y_pred_rf) * 100, 2),
-        "Precision (%)": round(precision_score(y_test, y_pred_rf) * 100, 2),
-        "Recall (%)": round(recall_score(y_test, y_pred_rf) * 100, 2),
-        "F1-Score (%)": round(f1_score(y_test, y_pred_rf) * 100, 2),
-        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_rf) * 100, 2),
-    }
     st.subheader("Random Forest")
+    rf_metrics = train_random_forest(X_train, y_train, X_test, y_test)
     st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
     st.write("""
-    **Random Forest:** An ensemble learning method that uses multiple decision trees to improve predictions. 
-    It can model non-linear relationships and provides feature importance scores for better interpretability.
+    Random Forest is an ensemble learning method that constructs multiple decision trees to 
+    predict match outcomes. It handles non-linear relationships and provides feature importance scores.
     """)
 
-    # XGBoost with Grid Search
-    xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
-    param_grid = {
-        'n_estimators': [50, 100, 150],
-        'max_depth': [3, 5, 7],
-        'learning_rate': [0.01, 0.1, 0.2]
-    }
-    xgb_grid = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, scoring='f1', cv=3, verbose=0)
-    xgb_grid.fit(X_train, y_train)
-    best_xgb = xgb_grid.best_estimator_
-    y_pred_xgb = best_xgb.predict(X_test)
-    xgb_metrics = {
-        "Accuracy (%)": round(accuracy_score(y_test, y_pred_xgb) * 100, 2),
-        "Precision (%)": round(precision_score(y_test, y_pred_xgb) * 100, 2),
-        "Recall (%)": round(recall_score(y_test, y_pred_xgb) * 100, 2),
-        "F1-Score (%)": round(f1_score(y_test, y_pred_xgb) * 100, 2),
-        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_xgb) * 100, 2),
-    }
     st.subheader("XGBoost")
+    xgb_metrics = train_xgboost(X_train, y_train, X_test, y_test)
     st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
     st.write("""
-    **XGBoost:** A gradient boosting method that focuses on optimizing errors in each iteration. 
-    It is highly efficient and works well for both linear and non-linear relationships, making it a versatile model.
+    XGBoost is a gradient boosting method that iteratively improves predictions by focusing on errors. 
+    It's highly efficient and can handle both linear and non-linear relationships effectively.
     """)
 
     # Model Performance Comparison
@@ -2289,12 +2304,6 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
     best_model_name = results_df['F1-Score (%)'].idxmax()
     best_model_score = results_df.loc[best_model_name]['F1-Score (%)']
     st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving an F1-Score of **{best_model_score}%**.")
-
-
-
-
-
-
 
             
 
