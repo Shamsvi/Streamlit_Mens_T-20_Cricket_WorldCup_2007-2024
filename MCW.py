@@ -2273,6 +2273,10 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         "F1-Score": round(f1_score(y_test, y_pred_log_reg) * 100, 2)
     }
     st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
+    st.write("""
+    Logistic Regression is a linear model that predicts match outcomes based on probabilities. 
+    It works best when the relationship between the features and the target variable is linear.
+    """)
 
     # Random Forest Evaluation
     st.subheader("Random Forest")
@@ -2284,6 +2288,10 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         "F1-Score": round(f1_score(y_test, y_pred_rf) * 100, 2)
     }
     st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
+    st.write("""
+    Random Forest is an ensemble learning method that constructs multiple decision trees to 
+    predict match outcomes. It handles non-linear relationships and provides feature importance scores.
+    """)
 
     # XGBoost Evaluation
     st.subheader("XGBoost")
@@ -2295,6 +2303,10 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         "F1-Score": round(f1_score(y_test, y_pred_xgb) * 100, 2)
     }
     st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
+    st.write("""
+    XGBoost is a gradient boosting method that iteratively improves predictions by focusing on errors. 
+    It's highly efficient and can handle both linear and non-linear relationships effectively.
+    """)
 
     # Model Comparison
     results_df = pd.DataFrame(
