@@ -161,111 +161,6 @@ print(merged_df.head())
 
 
 #############################################################################################################################
-# Feature Engineering and Data Transformation on the dataset
-
-# 1. Derive "Home Advantage" feature
-# Assume teams have an advantage when the match is played in their home country
-# (Simple assumption based on team names and ground locations)
-updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
-    lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
-)
-
-# 2. Normalize ranking differences
-# Normalize Batting and Bowling Ranking Difference columns to a 0-1 range for comparison
-scaler = MinMaxScaler()
-updated_wc_final_data_df[['Normalized Batting Difference', 'Normalized Bowling Difference']] = scaler.fit_transform(
-    updated_wc_final_data_df[['Batting Ranking Difference', 'Bowling Ranking Difference']]
-)
-
-# 3. Create a feature for "Winning Margin Type"
-# Categorize matches into "Close Match" or "Dominant Win" based on run/wicket margins
-def categorize_margin(row):
-    if row['Margin (Runs)'] > 20 or row['Margin (Wickets)'] > 5:
-        return 'Dominant Win'
-    elif row['Margin (Runs)'] > 0 or row['Margin (Wickets)'] > 0:
-        return 'Close Match'
-    else:
-        return 'No Result'
-updated_wc_final_data_df['Winning Margin Type'] = updated_wc_final_data_df.apply(categorize_margin, axis=1)
-
-# 4. Aggregate performance by year
-# Compute yearly aggregates for team performance metrics
-updated_wc_final_data_df['Match Importance'] = updated_wc_final_data_df['T-20 Int Match'].apply(
-    lambda x: 'High' if x > 300 else 'Low'
-)
-
-# 5. Create a feature for "Match Importance"
-# Assume later-stage matches (e.g., finals) are more important based on match numbers
-updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
-    lambda x: x.rolling(window=3, min_periods=1).mean()
-)
-updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
-    lambda x: x.rolling(window=3, min_periods=1).mean()
-)
-updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
-    lambda x: x.rolling(window=3, min_periods=1).mean()
-)
-
-# 6. Team Strength Index
-# Combine Batting and Bowling rankings to create a Team Strength Index for both teams
-
-updated_wc_final_data_df['Team1 Strength Index'] = (
-    updated_wc_final_data_df['Team1 Avg Batting Ranking'] * 0.5 +
-    updated_wc_final_data_df['Team1 Avg Bowling Ranking'] * 0.5
-)
-updated_wc_final_data_df['Team2 Strength Index'] = (
-    updated_wc_final_data_df['Team2 Avg Batting Ranking'] * 0.5 +
-    updated_wc_final_data_df['Team2 Avg Bowling Ranking'] * 0.5
-)
-
-# 7. Match Outcome as a Binary Feature
-# Indicate whether Team1 won the match
-
-updated_wc_final_data_df['Team1 Win'] = updated_wc_final_data_df['Winner'].apply(
-    lambda x: 1 if x == 'Team1' else 0
-)
-
-# 8.  Derived Features for Batting/Bowling Disparity
-# Calculate batting and bowling disparities between Team1 and Team2
-
-updated_wc_final_data_df['Batting Disparity'] = updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
-updated_wc_final_data_df['Bowling Disparity'] = updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
-
-# 9. Performance in High-Pressure Matches
-# Track wins and margins in high-pressure matches
-
-updated_wc_final_data_df['High Pressure Win'] = updated_wc_final_data_df.apply(
-    lambda row: 1 if row['Match Importance'] == 'High' and row['Team1 Win'] == 1 else 0, axis=1
-)
-
-# 10. Head-to-Head Records
-# Aggregated stats for Team1 vs Team2 pairs
-
-head_to_head_stats = updated_wc_final_data_df.groupby(['Team1', 'Team2']).agg({
-    'Team1 Win': 'sum',
-    'Margin (Runs)': 'mean',
-    'Margin (Wickets)': 'mean'
-}).reset_index()
-head_to_head_stats.rename(columns={
-    'Team1 Win': 'Head-to-Head Wins',
-    'Margin (Runs)': 'Avg Margin (Runs)',
-    'Margin (Wickets)': 'Avg Margin (Wickets)'
-}, inplace=True)
-updated_wc_final_data_df = updated_wc_final_data_df.merge(
-    head_to_head_stats, 
-    on=['Team1', 'Team2'], 
-    how='left', 
-    suffixes=('', '_head_to_head')
-)
-
-# 11. Seasonality Analysis
-# Add features for the seasonality of the match
-
-updated_wc_final_data_df['Season'] = updated_wc_final_data_df['Match Month'].apply(
-    lambda x: 'Winter' if x in [12, 1, 2] else 
-              'Spring' if x in [3, 4, 5] else 
-              'Summer' if x in [6, 7, 8] else 'Fall'
-)
 
 
 #############################################################################################################################
@@ -1965,10 +1860,10 @@ elif ds_section == "Feature Factory":
 
 
     # Verify the values in `Team1 Win`
-    if updated_wc_final_data_df['Team1 Win'].nunique() <= 1:
+    # Verify the values in `Team1 Win`
+    if updated_wc_final_data_df['Winner'].nunique() <= 1:
         st.error("The target column `Team1 Win` does not have enough class variability (e.g., only 0s or 1s). Ensure the `Winner` column is correctly populated.")
-    else:
-        st.success("The `Team1 Win` column is properly populated and ready for modeling.")
+
 
     # Feature Selector
     st.sidebar.header("Feature Selector")
@@ -2042,6 +1937,9 @@ elif ds_section == "Feature Factory":
             st.warning("None of the selected features are numeric. Please select numeric features to analyze correlations or distributions.")
     else:
         st.warning("Please select at least one feature to explore.")
+
+
+
 
 
 
