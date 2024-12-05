@@ -8,6 +8,7 @@ import re
 import seaborn as sns
 import base64
 import warnings
+import joblib
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, StandardScaler
 from itertools import combinations  
 from sklearn.model_selection import GridSearchCV
@@ -2066,6 +2067,7 @@ elif ds_section == "Feature Factory":
 
 
 
+
 ############################################################################################################################
 
 
@@ -2191,6 +2193,9 @@ elif ds_section == "Modeling the Game: Unveiling Predictions":
             # Highlight Best Model
             best_model = results_df.loc[results_df['F1-Score (%)'].idxmax()]
             st.write(f"### Best Model: **{best_model.name}** with an F1-Score of **{best_model['F1-Score (%)']}%**.")
+            model_save_path = "/Users/shamsvibaloonikhan/Streamlit---Mens-T-20-WorldCup-2007-2024/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/best_model.pkl"
+            joblib.dump(best_xgb, model_save_path)
+            
 
 
 
@@ -2200,6 +2205,7 @@ elif ds_section == "Modeling the Game: Unveiling Predictions":
 
 
 
+# Predictions
 # Predictions
 elif ds_section == "Forecasting the Next Champions":
     # Placeholder for updated dataset
@@ -2371,11 +2377,6 @@ elif ds_section == "Forecasting the Next Champions":
         # Display Predictions
         st.plotly_chart(predictions_fig)
         st.write(f"### Predictions: The team most likely to win the ICC Men's T20 World Cup 2026 is **{win_counts.idxmax()}**!")
-
-
-
-
-
 
 
 
