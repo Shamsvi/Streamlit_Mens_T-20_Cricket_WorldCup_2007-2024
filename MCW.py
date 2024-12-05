@@ -1884,7 +1884,7 @@ elif ds_section == "Feature Factory":
     selected_features = st.sidebar.multiselect(
         "Select Features to Explore",
         options=available_features,
-        default=["Home Advantage", "Normalized Batting Difference"]
+        default=["Normalized Bowling Difference", "Normalized Batting Difference"]
     )
     
     if selected_features:
