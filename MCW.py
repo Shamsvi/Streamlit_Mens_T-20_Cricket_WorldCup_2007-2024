@@ -2147,26 +2147,30 @@ elif ds_section == "Feature Factory":
 
 
 
+import streamlit as st
+import pandas as pd
+import requests
+from io import BytesIO
+from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+import joblib
 
-
-# URLs for the models
+# URLs for models
 LOG_REG_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/logistic_regression_model.pkl"
 RF_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/random_forest_model.pkl"
 XGB_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/xgboost_model.pkl"
 
-# Load model from URL
-def load_model_from_url(url):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return joblib.load(BytesIO(response.content))
-    except Exception as e:
-        st.error(f"Error loading model from {url}: {e}")
-        return None
-
 # Preprocessing Function
 @st.cache_data
 def preprocess_data(df, required_features):
+    """
+    Preprocess data: Ensure features exist and balance the dataset using SMOTE.
+    Returns the balanced dataset split into train and test sets.
+    """
     missing_features = [feature for feature in required_features if feature not in df.columns]
     if missing_features:
         return None, None, None, None, missing_features
@@ -2182,6 +2186,32 @@ def preprocess_data(df, required_features):
         X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
     )
     return X_train, X_test, y_train, y_test, None
+
+# Load Models
+@st.cache_resource
+def load_models():
+    urls = {
+        "log_reg": LOG_REG_MODEL_URL,
+        "rf": RF_MODEL_URL,
+        "xgb": XGB_MODEL_URL
+    }
+
+    models = {}
+    for model_name, url in urls.items():
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an error for HTTP issues
+            models[model_name] = joblib.load(BytesIO(response.content))
+        except Exception as e:
+            st.error(f"Error loading model from {url}: {e}")
+            models[model_name] = None
+
+    # Ensure all models are loaded
+    if all(models.values()):
+        return models["log_reg"], models["rf"], models["xgb"]
+    else:
+        st.error("Failed to load one or more models. Please check the URLs or model availability.")
+        return None, None, None
 
 # Modeling Section
 if ds_section == "Modeling the Game: Unveiling Predictions":
@@ -2213,9 +2243,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
     ]
 
     # Load Models
-    log_reg = load_model_from_url(LOG_REG_MODEL_URL)
-    rf_clf = load_model_from_url(RF_MODEL_URL)
-    xgb_clf = load_model_from_url(XGB_MODEL_URL)
+    log_reg, rf_clf, xgb_clf = load_models()
 
     if not log_reg or not rf_clf or not xgb_clf:
         st.error("Failed to load one or more models. Please check the URLs or model availability.")
@@ -2288,8 +2316,6 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
     best_model_name = results_df['F1-Score (%)'].idxmax()
     st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving the highest F1-Score.")
 
-
-            
 
 
 
