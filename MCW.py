@@ -2161,10 +2161,13 @@ from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 # Paths to model files
-MODEL_DIR = "/Users/shamsvibaloonikhan/Streamlit---Mens-T-20-WorldCup-2007-2024/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/"
+MODEL_DIR = "./models/"
 LOG_REG_MODEL_PATH = os.path.join(MODEL_DIR, "logistic_regression_model.pkl")
 RF_MODEL_PATH = os.path.join(MODEL_DIR, "random_forest_model.pkl")
 XGB_MODEL_PATH = os.path.join(MODEL_DIR, "xgboost_model.pkl")
+
+# Ensure the model directory exists
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 # Preprocessing Function
 @st.cache_data
@@ -2225,7 +2228,7 @@ def load_models():
         return None, None, None
 
 # Modeling Section
-if ds_section == "Modeling the Game: Unveiling Predictions":
+if "Modeling the Game: Unveiling Predictions" in st.sidebar.radio("Sections", ["Modeling the Game: Unveiling Predictions"]):
 
     # Check Winner Column
     if 'Winner' in updated_wc_final_data_df.columns:
@@ -2240,6 +2243,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
     st.write("""
     **Step into the Analytics Dugout!**
     In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. 
+    We compare Logistic Regression, Random Forest, and XGBoost to identify the best-performing model.
     """)
 
     required_features = [
@@ -2318,7 +2322,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
 
     # Recommendation
     best_model_name = results_df['F1-Score'].idxmax()
-    st.write(f"### Best Model: {best_model_name}")
+    st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**.")
 
             
 
