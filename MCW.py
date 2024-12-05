@@ -2149,25 +2149,20 @@ elif ds_section == "Feature Factory":
 
 
 
-import streamlit as st
-import pandas as pd
-import os
-import joblib
-from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+# URLs for the models
+LOG_REG_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/logistic_regression_model.pkl"
+RF_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/random_forest_model.pkl"
+XGB_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/xgboost_model.pkl"
 
-# Paths to model files
-MODEL_DIR = "./models/"
-LOG_REG_MODEL_PATH = os.path.join(MODEL_DIR, "logistic_regression_model.pkl")
-RF_MODEL_PATH = os.path.join(MODEL_DIR, "random_forest_model.pkl")
-XGB_MODEL_PATH = os.path.join(MODEL_DIR, "xgboost_model.pkl")
-
-# Ensure the model directory exists
-os.makedirs(MODEL_DIR, exist_ok=True)
+# Load model from URL
+def load_model_from_url(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return joblib.load(BytesIO(response.content))
+    except Exception as e:
+        st.error(f"Error loading model from {url}: {e}")
+        return None
 
 # Preprocessing Function
 @st.cache_data
@@ -2188,47 +2183,8 @@ def preprocess_data(df, required_features):
     )
     return X_train, X_test, y_train, y_test, None
 
-# Train and Save Models
-def train_and_save_models(df, required_features):
-    X_train, X_test, y_train, y_test, issues = preprocess_data(df, required_features)
-    if issues:
-        for issue in issues:
-            st.error(issue)
-        st.stop()
-
-    # Logistic Regression
-    log_reg = LogisticRegression(max_iter=1000, random_state=42)
-    log_reg.fit(X_train, y_train)
-    joblib.dump(log_reg, LOG_REG_MODEL_PATH)
-
-    # Random Forest
-    rf_clf = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=5)
-    rf_clf.fit(X_train, y_train)
-    joblib.dump(rf_clf, RF_MODEL_PATH)
-
-    # XGBoost
-    xgb_clf = XGBClassifier(eval_metric="logloss", random_state=42)
-    xgb_clf.fit(X_train, y_train)
-    joblib.dump(xgb_clf, XGB_MODEL_PATH)
-
-    return log_reg, rf_clf, xgb_clf
-
-# Load Models
-@st.cache_resource
-def load_models():
-    if not os.path.exists(LOG_REG_MODEL_PATH) or not os.path.exists(RF_MODEL_PATH) or not os.path.exists(XGB_MODEL_PATH):
-        return None, None, None
-    try:
-        log_reg = joblib.load(LOG_REG_MODEL_PATH)
-        rf_clf = joblib.load(RF_MODEL_PATH)
-        xgb_clf = joblib.load(XGB_MODEL_PATH)
-        return log_reg, rf_clf, xgb_clf
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None, None, None
-
 # Modeling Section
-if "Modeling the Game: Unveiling Predictions" in st.sidebar.radio("Sections", ["Modeling the Game: Unveiling Predictions"]):
+if ds_section == "Modeling the Game: Unveiling Predictions":
 
     # Check Winner Column
     if 'Winner' in updated_wc_final_data_df.columns:
@@ -2242,8 +2198,10 @@ if "Modeling the Game: Unveiling Predictions" in st.sidebar.radio("Sections", ["
     st.title("Modeling the Game: Unveiling Predictions")
     st.write("""
     **Step into the Analytics Dugout!**
+    
     In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. 
-    We compare Logistic Regression, Random Forest, and XGBoost to identify the best-performing model.
+    It's like having your own expert cricket analyst, but powered by algorithms! We compare the performances 
+    of Logistic Regression, Random Forest, and XGBoost to see which model hits the boundary and predicts match outcomes with the most accuracy.
     """)
 
     required_features = [
@@ -2254,11 +2212,14 @@ if "Modeling the Game: Unveiling Predictions" in st.sidebar.radio("Sections", ["
         'Home Advantage'
     ]
 
-    # Load or Train Models
-    log_reg, rf_clf, xgb_clf = load_models()
-    if log_reg is None or rf_clf is None or xgb_clf is None:
-        st.warning("Model files not found. Training new models...")
-        log_reg, rf_clf, xgb_clf = train_and_save_models(updated_wc_final_data_df, required_features)
+    # Load Models
+    log_reg = load_model_from_url(LOG_REG_MODEL_URL)
+    rf_clf = load_model_from_url(RF_MODEL_URL)
+    xgb_clf = load_model_from_url(XGB_MODEL_URL)
+
+    if not log_reg or not rf_clf or not xgb_clf:
+        st.error("Failed to load one or more models. Please check the URLs or model availability.")
+        st.stop()
 
     # Preprocess Data
     X_train, X_test, y_train, y_test, issues = preprocess_data(updated_wc_final_data_df, required_features)
@@ -2269,60 +2230,64 @@ if "Modeling the Game: Unveiling Predictions" in st.sidebar.radio("Sections", ["
 
     # Logistic Regression Evaluation
     st.subheader("Logistic Regression")
-    y_pred_log_reg = log_reg.predict(X_test)
-    log_reg_metrics = {
-        "Accuracy": round(accuracy_score(y_test, y_pred_log_reg) * 100, 2),
-        "Precision": round(precision_score(y_test, y_pred_log_reg) * 100, 2),
-        "Recall": round(recall_score(y_test, y_pred_log_reg) * 100, 2),
-        "F1-Score": round(f1_score(y_test, y_pred_log_reg) * 100, 2)
-    }
-    st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
     st.write("""
     Logistic Regression is a linear model that predicts match outcomes based on probabilities. 
     It works best when the relationship between the features and the target variable is linear.
     """)
+    y_pred_log_reg = log_reg.predict(X_test)
+    log_reg_metrics = {
+        "Accuracy (%)": round(accuracy_score(y_test, y_pred_log_reg) * 100, 2),
+        "Precision (%)": round(precision_score(y_test, y_pred_log_reg) * 100, 2),
+        "Recall (%)": round(recall_score(y_test, y_pred_log_reg) * 100, 2),
+        "F1-Score (%)": round(f1_score(y_test, y_pred_log_reg) * 100, 2),
+        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_log_reg) * 100, 2),
+    }
+    st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
 
     # Random Forest Evaluation
     st.subheader("Random Forest")
-    y_pred_rf = rf_clf.predict(X_test)
-    rf_metrics = {
-        "Accuracy": round(accuracy_score(y_test, y_pred_rf) * 100, 2),
-        "Precision": round(precision_score(y_test, y_pred_rf) * 100, 2),
-        "Recall": round(recall_score(y_test, y_pred_rf) * 100, 2),
-        "F1-Score": round(f1_score(y_test, y_pred_rf) * 100, 2)
-    }
-    st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
     st.write("""
     Random Forest is an ensemble learning method that constructs multiple decision trees to 
     predict match outcomes. It handles non-linear relationships and provides feature importance scores.
     """)
+    y_pred_rf = rf_clf.predict(X_test)
+    rf_metrics = {
+        "Accuracy (%)": round(accuracy_score(y_test, y_pred_rf) * 100, 2),
+        "Precision (%)": round(precision_score(y_test, y_pred_rf) * 100, 2),
+        "Recall (%)": round(recall_score(y_test, y_pred_rf) * 100, 2),
+        "F1-Score (%)": round(f1_score(y_test, y_pred_rf) * 100, 2),
+        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_rf) * 100, 2),
+    }
+    st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
 
     # XGBoost Evaluation
     st.subheader("XGBoost")
-    y_pred_xgb = xgb_clf.predict(X_test)
-    xgb_metrics = {
-        "Accuracy": round(accuracy_score(y_test, y_pred_xgb) * 100, 2),
-        "Precision": round(precision_score(y_test, y_pred_xgb) * 100, 2),
-        "Recall": round(recall_score(y_test, y_pred_xgb) * 100, 2),
-        "F1-Score": round(f1_score(y_test, y_pred_xgb) * 100, 2)
-    }
-    st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
     st.write("""
     XGBoost is a gradient boosting method that iteratively improves predictions by focusing on errors. 
     It's highly efficient and can handle both linear and non-linear relationships effectively.
     """)
+    y_pred_xgb = xgb_clf.predict(X_test)
+    xgb_metrics = {
+        "Accuracy (%)": round(accuracy_score(y_test, y_pred_xgb) * 100, 2),
+        "Precision (%)": round(precision_score(y_test, y_pred_xgb) * 100, 2),
+        "Recall (%)": round(recall_score(y_test, y_pred_xgb) * 100, 2),
+        "F1-Score (%)": round(f1_score(y_test, y_pred_xgb) * 100, 2),
+        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_xgb) * 100, 2),
+    }
+    st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
 
-    # Model Comparison
+    # Model Performance Comparison
     results_df = pd.DataFrame(
         [log_reg_metrics, rf_metrics, xgb_metrics],
         index=["Logistic Regression", "Random Forest", "XGBoost"]
     )
     st.subheader("Model Performance Comparison")
-    st.write(results_df)
+    st.dataframe(results_df)
 
     # Recommendation
-    best_model_name = results_df['F1-Score'].idxmax()
-    st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**.")
+    best_model_name = results_df['F1-Score (%)'].idxmax()
+    st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving the highest F1-Score.")
+
 
             
 
