@@ -2344,9 +2344,7 @@ This visual tool allows us to dive deeper into the predictions and see where the
         [log_reg_metrics, rf_metrics, xgb_metrics],
         index=["Logistic Regression", "Random Forest", "XGBoost"]
     )
-    st.subheader("Model Performance Comparison")
-   
-
+    
     st.subheader("Model Performance Comparison")
     st.dataframe(results_df)
 
