@@ -1,29 +1,34 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import requests
+from io import BytesIO
 import plotly.express as px
-import matplotlib.pyplot as plt
 import plotly.graph_objs as go  
-import re
+import matplotlib.pyplot as plt
 import seaborn as sns
-import base64
+import re
 import warnings
+import base64
 import joblib
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, StandardScaler
-from itertools import combinations  
-from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
-from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
     recall_score,
     f1_score,
-    roc_auc_score
+    roc_auc_score,
+    confusion_matrix,
+    ConfusionMatrixDisplay
 )
+from imblearn.over_sampling import SMOTE
+from itertools import combinations
+
+
 
 
 # Load the dataset
@@ -2149,7 +2154,6 @@ elif ds_section == "Feature Factory":
 ############################################################################################################################
 
 
-
 import streamlit as st
 import pandas as pd
 import requests
@@ -2159,7 +2163,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
+import matplotlib.pyplot as plt
 import joblib
 
 # URLs for models
@@ -2170,10 +2183,6 @@ XGB_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup
 # Preprocessing Function
 @st.cache_data
 def preprocess_data(df, required_features):
-    """
-    Preprocess data: Ensure features exist and balance the dataset using SMOTE.
-    Returns the balanced dataset split into train and test sets.
-    """
     missing_features = [feature for feature in required_features if feature not in df.columns]
     if missing_features:
         return None, None, None, None, missing_features
@@ -2216,6 +2225,21 @@ def load_models():
         st.error("Failed to load one or more models. Please check the URLs or model availability.")
         return None, None, None
 
+# Interactive Confusion Matrix
+def interactive_confusion_matrix(y_test, predictions, model_name):
+    """
+    Display an interactive confusion matrix for the selected model.
+    """
+    cm = confusion_matrix(y_test, predictions)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    
+    # Adjust the size of the plot
+    fig, ax = plt.subplots(figsize=(3, 3))  # Reduced size
+    disp.plot(ax=ax, cmap=plt.cm.Blues, colorbar=False)
+    plt.title(f"Confusion Matrix: {model_name}")
+    st.pyplot(fig)
+    
+
 # Modeling Section
 if ds_section == "Modeling the Game: Unveiling Predictions":
 
@@ -2232,10 +2256,15 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
     st.write("""
     **Step into the Analytics Dugout!**
     
-    In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. 
-    It's like having your own expert cricket analyst, but powered by algorithms! We compare the performances 
-    of Logistic Regression, Random Forest, and XGBoost to see which model hits the boundary and predicts match outcomes with the most accuracy.
-    """)
+In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. It's like having your own expert cricket analyst, but powered by algorithms! We compare the performances of Logistic Regression, Random Forest, and XGBoost to see which model hits the boundary and predicts match outcomes with the most accuracy.
+
+But that's not all—this section also introduces Confusion Matrices, a powerful tool for evaluating model performance. A confusion matrix shows how well a model distinguishes between different classes (e.g., "Team 1 Wins" vs. "Team 1 Loses") by providing counts of:
+
+True Positives (TP): Correctly predicted wins.
+True Negatives (TN): Correctly predicted losses.
+False Positives (FP): Predicted a win when the team actually lost.
+False Negatives (FN): Predicted a loss when the team actually won.
+This visual tool allows us to dive deeper into the predictions and see where the model excels and where it might falter. By comparing the confusion matrices of Logistic Regression, Random Forest, and XGBoost, you'll gain valuable insights into each model's strengths and weaknesses. Let’s explore! 🚀""")
 
     required_features = [
         'Team1 Strength Index', 'Team2 Strength Index', 
@@ -2274,6 +2303,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_log_reg) * 100, 2),
     }
     st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
+    interactive_confusion_matrix(y_test, y_pred_log_reg, "Logistic Regression")
 
     # Random Forest Evaluation
     st.subheader("Random Forest")
@@ -2290,6 +2320,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_rf) * 100, 2),
     }
     st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
+    interactive_confusion_matrix(y_test, y_pred_rf, "Random Forest")
 
     # XGBoost Evaluation
     st.subheader("XGBoost")
@@ -2306,6 +2337,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_xgb) * 100, 2),
     }
     st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
+    interactive_confusion_matrix(y_test, y_pred_xgb, "XGBoost")
 
     # Model Performance Comparison
     results_df = pd.DataFrame(
@@ -2313,11 +2345,17 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
         index=["Logistic Regression", "Random Forest", "XGBoost"]
     )
     st.subheader("Model Performance Comparison")
+   
+
+    st.subheader("Model Performance Comparison")
     st.dataframe(results_df)
 
     # Recommendation
     best_model_name = results_df['F1-Score (%)'].idxmax()
     st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving the highest F1-Score.")
+
+
+
 
 
 
