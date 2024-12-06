@@ -2154,27 +2154,6 @@ elif ds_section == "Feature Factory":
 ############################################################################################################################
 
 
-import streamlit as st
-import pandas as pd
-import requests
-from io import BytesIO
-from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    confusion_matrix,
-    ConfusionMatrixDisplay,
-)
-import matplotlib.pyplot as plt
-import joblib
-
 # URLs for models
 LOG_REG_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/logistic_regression_model.pkl"
 RF_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/random_forest_model.pkl"
@@ -2260,10 +2239,14 @@ In this section, we use cutting-edge machine learning models to predict the outc
 
 But that's not all—this section also introduces Confusion Matrices, a powerful tool for evaluating model performance. A confusion matrix shows how well a model distinguishes between different classes (e.g., "Team 1 Wins" vs. "Team 1 Loses") by providing counts of:
 
-True Positives (TP): Correctly predicted wins.
-True Negatives (TN): Correctly predicted losses.
-False Positives (FP): Predicted a win when the team actually lost.
-False Negatives (FN): Predicted a loss when the team actually won.
+- True Positives (TP): Correctly predicted wins.
+             
+- True Negatives (TN): Correctly predicted losses.
+             
+- False Positives (FP): Predicted a win when the team actually lost.
+             
+- False Negatives (FN): Predicted a loss when the team actually won.
+             
 This visual tool allows us to dive deeper into the predictions and see where the model excels and where it might falter. By comparing the confusion matrices of Logistic Regression, Random Forest, and XGBoost, you'll gain valuable insights into each model's strengths and weaknesses. Let’s explore! 🚀""")
 
     required_features = [
@@ -2363,8 +2346,6 @@ This visual tool allows us to dive deeper into the predictions and see where the
 ############################################################################################################################
 
 
-
-# Predictions
 # Predictions
 elif ds_section == "Forecasting the Next Champions":
     # Placeholder for updated dataset
@@ -2538,6 +2519,147 @@ elif ds_section == "Forecasting the Next Champions":
         st.write(f"### Predictions: The team most likely to win the ICC Men's T20 World Cup 2026 is **{win_counts.idxmax()}**!")
 
 
+
+
+
+# Load Models
+log_reg, rf_clf, xgb_clf = load_models()
+
+if not log_reg or not rf_clf or not xgb_clf:
+    st.error("Failed to load one or more models. Please check the URLs or model availability.")
+    st.stop()
+
+# Predictions
+elif ds_section == "Forecasting the Next Champions":
+
+    # Placeholder for updated dataset
+    st.write("""
+    Based on our extensive analysis and model predictions, the Random Forest model suggests that **India** 
+    is most likely to be the next ICC Men's T20 World Cup champion. 
+    
+    However, these predictions are based on current data and assumptions. 
+    Changes in team composition, performance, or other factors could influence the outcomes. Let's explore how different factors can impact predictions.
+    """)
+    st.subheader("Who Else can Win the Next T20 World Cup?")
+   
+
+    # Dropdown for selecting teams
+    team_names = sorted(updated_wc_final_data_df['Team1'].unique())  # Assuming Team1 contains all team names
+    team1_name = st.selectbox(
+        "Select Team 1",
+        options=team_names,
+        index=team_names.index("India") if "India" in team_names else 0,  # Default to India
+        help="Select the first team for the match."
+    )
+    team2_name = st.selectbox(
+        "Select Team 2",
+        options=[team for team in team_names if team != team1_name],
+        index=team_names.index("Pakistan") - 1 if "Pakistan" in team_names else 0,  # Default to Pakistan
+        help="Select the second team for the match. This team should be different from Team 1."
+    )
+
+    # User Inputs for Predictions
+    st.write("### Match Details")
+
+    team1_strength = st.number_input(
+        f"{team1_name} Strength Index (0.0 to 1.0)",
+        min_value=0.0, max_value=1.0, step=0.01,
+        help="Strength Index of Team 1 based on historical performance and team composition."
+    )
+    team2_strength = st.number_input(
+        f"{team2_name} Strength Index (0.0 to 1.0)",
+        min_value=0.0, max_value=1.0, step=0.01,
+        help="Strength Index of Team 2 based on historical performance and team composition."
+    )
+    batting_disparity = st.number_input(
+        "Batting Disparity (-1.0 to 1.0)",
+        min_value=-1.0, max_value=1.0, step=0.01,
+        help="Difference in batting strengths between the two teams. Positive values favor Team 1, negative values favor Team 2."
+    )
+    bowling_disparity = st.number_input(
+        "Bowling Disparity (-1.0 to 1.0)",
+        min_value=-1.0, max_value=1.0, step=0.01,
+        help="Difference in bowling strengths between the two teams. Positive values favor Team 1, negative values favor Team 2."
+    )
+    normalized_batting_difference = st.number_input(
+        "Normalized Batting Difference (0.0 to 1.0)",
+        min_value=0.0, max_value=1.0, step=0.01,
+        help="Normalized batting strength difference between the teams. A higher value indicates a stronger batting lineup for Team 1."
+    )
+    normalized_bowling_difference = st.number_input(
+        "Normalized Bowling Difference (0.0 to 1.0)",
+        min_value=0.0, max_value=1.0, step=0.01,
+        help="Normalized bowling strength difference between the teams. A higher value indicates a stronger bowling lineup for Team 1."
+    )
+    rolling_win = st.number_input(
+        "Rolling Win % (0 to 100)",
+        min_value=0.0, max_value=100.0, step=0.1,
+        help="Win percentage based on recent matches for Team 1. Represents recent form and momentum."
+    )
+    rolling_margin_runs = st.number_input(
+        "Rolling Margin (Runs)",
+        min_value=0.0, max_value=100.0, step=0.1,
+        help="Average winning margin in runs for Team 1 in recent matches."
+    )
+    rolling_margin_wickets = st.number_input(
+        "Rolling Margin (Wickets)",
+        min_value=0.0, max_value=10.0, step=0.1,
+        help="Average winning margin in wickets for Team 1 in recent matches."
+    )
+    home_advantage = st.selectbox(
+        "Home Advantage",
+        options=[0, 1],
+        format_func=lambda x: f"{team1_name if x == 1 else team2_name}",
+        help="Indicates which team has the home advantage. Choose 1 for Team 1 and 0 for Team 2."
+    )
+
+    # Prediction Button
+    if st.button("Predict Winner"):
+        # Prepare Input Data
+        input_data = pd.DataFrame({
+            'Team1 Strength Index': [team1_strength],
+            'Team2 Strength Index': [team2_strength],
+            'Batting Disparity': [batting_disparity],
+            'Bowling Disparity': [bowling_disparity],
+            'Normalized Batting Difference': [normalized_batting_difference],
+            'Normalized Bowling Difference': [normalized_bowling_difference],
+            'Rolling Win %': [rolling_win],
+            'Rolling Margin (Runs)': [rolling_margin_runs],
+            'Rolling Margin (Wickets)': [rolling_margin_wickets],
+            'Home Advantage': [home_advantage]
+        })
+
+        try:
+            # Predictions from Models
+            log_reg_pred = log_reg.predict(input_data)[0]
+            rf_pred = rf_clf.predict(input_data)[0]
+            xgb_pred = xgb_clf.predict(input_data)[0]
+
+            # Aggregate Predictions
+            predictions = {
+                "Logistic Regression": log_reg_pred,
+                "Random Forest": rf_pred,
+                "XGBoost": xgb_pred
+            }
+            final_prediction = sum(predictions.values()) / 3
+            final_winner = team1_name if final_prediction > 0.5 else team2_name
+
+            # Display Results
+            st.write("### Model Predictions:")
+            for model, prediction in predictions.items():
+                winner = team1_name if prediction == 1 else team2_name
+                st.write(f"- **{model}:** Predicted Winner - **{winner}**")
+
+            # Final Prediction Based on Majority Vote
+            final_winner = team1_name if rf_pred == 1 else team2_name
+            st.write(f"The predicted winner, based on **Random Forest**, is **{final_winner}**.")
+
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
+
+
+
+        
 
 
 
