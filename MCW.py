@@ -2536,19 +2536,23 @@ elif ds_section == "Forecasting the Next Champions":
             )
 
         # Prediction Instructions
-        st.subheader("Who Else Has a Shot at World Cup Glory?")
-        st.write("""
-        Using historical data and advanced statistics, we simulate matchups to predict the next ICC Men's T20 World Cup Champion.
         
-        **Metrics Used**:
-        - Strength index (batting & bowling combined)
-        - Rolling averages (wins, margins)
-        - Home advantage
-        - Disparities in batting & bowling rankings
 
-        A trained Random Forest model forecasts each matchup, with the team achieving the most wins crowned as the potential champion.
-        """)
+        st.write("""
+    Based on our extensive analysis and model predictions, the Random Forest model suggests that **India** 
+    is likely to be the next ICC Men's T20 World Cup champion. However, these predictions are based on current data and assumptions. 
+    Changes in team composition, performance, or other factors could influence the outcomes. 
+    
+    **Metrics Used**:
+    - Strength index (batting & bowling combined)
+    - Rolling averages (wins, margins)
+    - Home advantage
+     - Disparities in batting & bowling rankings
 
+    A trained Random Forest model forecasts each matchup, with the team achieving the most wins crowned as the potential champion.
+    
+    Let's explore how different factors can impact predictions.  """)
+        st.subheader("Who Else Has a Shot at World Cup Glory?")
         # Team Selection
         team_names = sorted(updated_wc_final_data_df['Team1'].unique())  # Assuming Team1 contains all team names
         team1_name = st.selectbox(
@@ -2630,39 +2634,6 @@ elif ds_section == "Forecasting the Next Champions":
                 st.success(f"The predicted winner is: **{winner}**")
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
