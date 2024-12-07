@@ -2366,25 +2366,9 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ############################################################################################################################
 
 
-## Predictions
 elif ds_section == "Forecasting the Next Champions":
 
     # Placeholder for updated dataset
@@ -2670,11 +2654,6 @@ elif ds_section == "Forecasting the Next Champions":
                 st.success(f"The predicted winner is: **{winner}**")
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
-
-
-
-
-
 
 
 
