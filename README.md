@@ -39,8 +39,7 @@ Ensure you have the following installed:
 Installation Steps
 1. Clone the Repository:
    `````
-   git clone https://github.com/Shamsvi/CMSE-830.git
-   cd CMSE-830/MidtermPorject
+   git clone [https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024.git]
 
 2. Set Up a Virtual Environment (Optional but recommended)
 
