@@ -2536,7 +2536,7 @@ elif ds_section == "Forecasting the Next Champions":
             )
 
         # Prediction Instructions
-        st.subheader("Predictions: Who Will Reign Supreme?")
+        st.subheader("Who Else Has a Shot at World Cup Glory?")
         st.write("""
         Using historical data and advanced statistics, we simulate matchups to predict the next ICC Men's T20 World Cup Champion.
         
