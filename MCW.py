@@ -2158,9 +2158,11 @@ elif ds_section == "Feature Factory":
 
 ############################################################################################################################
 
+# Modeling
 import requests
 import joblib
 from io import BytesIO
+
 
 # URLs for pre-trained models
 LOG_REG_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/models/logistic_regression_model.pkl"
@@ -2347,10 +2349,9 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
 
 ############################################################################################################################
 
-
 elif ds_section == "Forecasting the Next Champions":
 
-    # Placeholder for updated dataset
+    # Check for dataset availability
     if 'updated_wc_final_data_df' not in locals():
         st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
     else:
@@ -2402,7 +2403,7 @@ elif ds_section == "Forecasting the Next Champions":
         **Prediction Process**:
         - Historical data is aggregated to calculate performance metrics for each team.
         - A round-robin simulation generates matchups between all teams.
-        - Using a trained Random Forest model, outcomes of each matchup are predicted.
+        - Using a trained model, outcomes of each matchup are predicted.
         - The model identifies the team most likely to emerge victorious based on win counts.
         """)
 
@@ -2499,140 +2500,7 @@ elif ds_section == "Forecasting the Next Champions":
 
 
 
-    # Check for dataset availability
-    if 'updated_wc_final_data_df' not in locals():
-        st.error("Dataset `updated_wc_final_data_df` is not loaded. Please load the dataset.")
-    else:
-        # Perform Feature Engineering if not already done
-        if 'Home Advantage' not in updated_wc_final_data_df.columns:
-            updated_wc_final_data_df['Home Advantage'] = updated_wc_final_data_df.apply(
-                lambda row: 1 if row['Team1'] in row['Ground'] or row['Team2'] in row['Ground'] else 0, axis=1
-            )
 
-        if 'Rolling Win %' not in updated_wc_final_data_df.columns:
-            updated_wc_final_data_df['Rolling Win %'] = updated_wc_final_data_df.groupby('Team1')['Team1 win % over Team2'].transform(
-                lambda x: x.rolling(window=3, min_periods=1).mean()
-            )
-
-        if 'Rolling Margin (Runs)' not in updated_wc_final_data_df.columns:
-            updated_wc_final_data_df['Rolling Margin (Runs)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Runs)'].transform(
-                lambda x: x.rolling(window=3, min_periods=1).mean()
-            )
-
-        if 'Rolling Margin (Wickets)' not in updated_wc_final_data_df.columns:
-            updated_wc_final_data_df['Rolling Margin (Wickets)'] = updated_wc_final_data_df.groupby('Team1')['Margin (Wickets)'].transform(
-                lambda x: x.rolling(window=3, min_periods=1).mean()
-            )
-
-        if 'Batting Disparity' not in updated_wc_final_data_df.columns:
-            updated_wc_final_data_df['Batting Disparity'] = (
-                updated_wc_final_data_df['Team1 Avg Batting Ranking'] - updated_wc_final_data_df['Team2 Avg Batting Ranking']
-            )
-
-        if 'Bowling Disparity' not in updated_wc_final_data_df.columns:
-            updated_wc_final_data_df['Bowling Disparity'] = (
-                updated_wc_final_data_df['Team1 Avg Bowling Ranking'] - updated_wc_final_data_df['Team2 Avg Bowling Ranking']
-            )
-
-        # Prediction Instructions
-        
-
-        st.write("""
-    Based on our extensive analysis and model predictions, the Random Forest model suggests that **India** 
-    is likely to be the next ICC Men's T20 World Cup champion. However, these predictions are based on current data and assumptions. 
-    Changes in team composition, performance, or other factors could influence the outcomes. 
-    
-    **Metrics Used**:
-    - Strength index (batting & bowling combined)
-    - Rolling averages (wins, margins)
-    - Home advantage
-     - Disparities in batting & bowling rankings
-
-    A trained Random Forest model forecasts each matchup, with the team achieving the most wins crowned as the potential champion.
-    
-    Let's explore how different factors can impact predictions.  """)
-        st.subheader("Who Else Has a Shot at World Cup Glory?")
-        # Team Selection
-        team_names = sorted(updated_wc_final_data_df['Team1'].unique())  # Assuming Team1 contains all team names
-        team1_name = st.selectbox(
-            "Select Team 1",
-            options=team_names,
-            index=team_names.index("India") if "India" in team_names else 0,  # Default to India
-            help="Select the first team for the match."
-        )
-        team2_name = st.selectbox(
-            "Select Team 2",
-            options=[team for team in team_names if team != team1_name],
-            index=team_names.index("Pakistan") - 1 if "Pakistan" in team_names else 0,  # Default to Pakistan
-            help="Select the second team for the match. This team should be different from Team 1."
-        )
-
-        # Input Fields for Custom Predictions
-        st.write("### Match Details")
-        team1_strength = st.number_input(
-            f"{team1_name} Strength Index (0 to 110)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team1'] == team1_name, 'Team1 Strength Index'].mean(), 2),
-            min_value=0.0, max_value=110.0, step=0.1
-        )
-        team2_strength = st.number_input(
-            f"{team2_name} Strength Index (0 to 110)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team2'] == team2_name, 'Team2 Strength Index'].mean(), 2),
-            min_value=0.0, max_value=110.0, step=0.1
-        )
-        batting_disparity = st.number_input(
-            "Batting Disparity (-100 to 100)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team1'] == team1_name, 'Batting Disparity'].mean(), 2),
-            min_value=-100.0, max_value=100.0, step=0.1
-        )
-        bowling_disparity = st.number_input(
-            "Bowling Disparity (-100 to 100)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team1'] == team1_name, 'Bowling Disparity'].mean(), 2),
-            min_value=-100.0, max_value=100.0, step=0.1
-        )
-        rolling_win = st.number_input(
-            f"Rolling Win % for {team1_name} (0 to 100)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team1'] == team1_name, 'Rolling Win %'].mean(), 2),
-            min_value=0.0, max_value=100.0, step=0.1
-        )
-        rolling_margin_runs = st.number_input(
-            "Rolling Margin (Runs)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team1'] == team1_name, 'Rolling Margin (Runs)'].mean(), 2),
-            min_value=0.0, max_value=300.0, step=0.1
-        )
-        rolling_margin_wickets = st.number_input(
-            "Rolling Margin (Wickets)",
-            value=round(updated_wc_final_data_df.loc[updated_wc_final_data_df['Team1'] == team1_name, 'Rolling Margin (Wickets)'].mean(), 2),
-            min_value=0.0, max_value=10.0, step=0.1
-        )
-        home_advantage = st.selectbox(
-            "Home Advantage",
-            options=[0, 1],
-            format_func=lambda x: f"{team1_name if x == 1 else team2_name}",
-            help="Assign home advantage to a team."
-        )
-
-        # Prediction Button
-        if st.button("Predict Winner"):
-            # Prepare Input Data
-            input_data = pd.DataFrame({
-                'Team1 Strength Index': [team1_strength],
-                'Team2 Strength Index': [team2_strength],
-                'Batting Disparity': [batting_disparity],
-                'Bowling Disparity': [bowling_disparity],
-                'Rolling Win %': [rolling_win],
-                'Rolling Margin (Runs)': [rolling_margin_runs],
-                'Rolling Margin (Wickets)': [rolling_margin_wickets],
-                'Home Advantage': [home_advantage]
-            })
-
-            try:
-                # Predictions
-                rf_pred = rf_clf.predict(input_data)[0]
-                winner = team1_name if rf_pred == 1 else team2_name
-
-                st.success(f"The predicted winner is: **{winner}**")
-            except Exception as e:
-                st.error(f"Prediction Error: {e}")
 
 
 
