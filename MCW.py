@@ -533,16 +533,7 @@ if ui_section == "Welcome!":
 
 
 
-#  Display the dataset
-elif ui_section == "Dataset Overview":
-    st.subheader('Dataset Overview')    
-    st.write("The Men's Cricket World Cup is one of the most prestigious tournaments in the cricketing calendar, showcasing the talents of the world's best teams and players. This project aims to analyze and visualize key data from the tournament, focusing on match outcomes, team performances, and individual player statistics. By leveraging advanced data analysis techniques, we will explore trends in match margins, batting and bowling averages, and historical rivalries. Through this comprehensive analysis, we seek to provide valuable insights into the dynamics of the tournament, enhancing our understanding of competitiveness and performance in international cricket.")
-    wc_final_data_df = pd.read_csv('updated_wc_final_data_df.csv')
-    col1, col2 = st.columns(2)
-    with col1:
-        st.dataframe(wc_final_data_df, key = 'dataframe')
-    with col2:
-        st.dataframe(players_df, key = 'dataframe')
+
 
 
 
@@ -585,6 +576,9 @@ elif ui_section == "Team Battles":
     total_matches = total_matches.groupby('Team', as_index=False).sum()
 
     # Bar Plot: Total Matches Played by Each Team
+    # Sort the data by Matches in descending order
+    total_matches_sorted = total_matches.sort_values(by='Matches', ascending=False)
+
     fig_total_matches = px.bar(
         total_matches,
         x='Team',
@@ -596,7 +590,9 @@ elif ui_section == "Team Battles":
         template='plotly_white',  # Set template to plotly_white
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
+    fig_total_matches.update_layout(xaxis=dict(categoryorder='total descending'))
     fig_total_matches.update_traces(marker_line_color='black', marker_line_width=1.5)
+  
 
     # Geospatial Visualization: Choropleth Map
     team_country_mapping = {
