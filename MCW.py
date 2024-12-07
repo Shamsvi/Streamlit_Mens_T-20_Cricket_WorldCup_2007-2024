@@ -1006,32 +1006,28 @@ elif ui_section == "Ground Chronicles":
     ground_matches['Winning Teams'] = ground_matches['Ground'].map(
         lambda x: ', '.join(wc_final_data_df[wc_final_data_df['Ground'] == x]['Winner'].unique())
     )
-    # Heatmap
-    st.subheader("Heatmaps")
-    st.markdown("""
-    **How Grounds Influence Team Success:**  
-    This section helps you discover which teams perform best at specific cricket grounds. The visual shows how many times each team has won at various venues, giving you a clear picture of the places where teams dominate. Alongside, the table provides a detailed breakdown of the connection between grounds and winning teams, offering easy-to-understand numbers to support the visual patterns. It's a simple way to explore which teams thrive where and uncover surprising insights about their winning streaks.
-    """)
-
-    ground_winner_pivot = wc_final_data_df.pivot_table(index='Ground', 
-                                                    columns='Winner', 
-                                                    aggfunc='size', 
-                                                    fill_value=0)
-    fig_heatmap = px.imshow(ground_winner_pivot,
-                            title='Heatmap of Teams and Their Maximum Wins at a Ground',
-                            labels={'color': 'Number of Wins'},
-                            color_continuous_scale='Viridis',
-                            text_auto=True) 
-    fig_heatmap.update_layout(
-        xaxis_title='Winning Countries',
-        yaxis_title='Grounds',
-        width=800,
-        height=600
-    )
-    st.plotly_chart(fig_heatmap)
+    
 
     #Correlation Heatmap - one hot encoding
-    st.subheader("Correlatioanl Heatmap")
+    st.subheader("Where Winners Rule: The Correlation Heatmap")
+    st.markdown("""
+        Ever wondered if certain cricket grounds have a magical charm that brings out the best in specific teams? 🤔🏏
+
+        In this section, we dive into a **colorful heatmap** that uncovers the secret sauce of cricketing success! Here’s what it’s all about:
+
+        **What’s Happening Here?**
+        - We’ve analyzed how **winning teams** are connected to the **grounds** they played on.
+        - Each box in the heatmap shows a **correlation score**—a number that tells us how strongly a winning team’s success is tied to playing on a specific ground. 📈
+        - The brighter the color, the stronger the connection! 💡
+
+         **Why Should You Care?**
+        - Discover the lucky grounds that seem to favor your favorite teams.
+        - Find out if there’s a hidden home-ground advantage lurking in the data. 🏠✨
+        - It’s like uncovering the lucky charms of the cricketing world—one ground at a time!
+
+        Take a closer look, hover over the heatmap, and let the colors tell you the story of cricketing success! 🚀
+        """)
+
     df_encoded = pd.get_dummies(wc_final_data_df[['Winner', 'Ground']])
     # Compute the correlation matrix
     correlation_matrix = df_encoded.corr()
@@ -1068,182 +1064,110 @@ elif ui_section == "Ground Chronicles":
 
 #Participation
 
+# Player Glory Section
 elif ui_section == "Player Glory":
     st.subheader("Player Glory")
     st.markdown("""
-    **Unveiling Player Glory**  
+    **Unveiling Player Glory**
 
-    Explore the incredible contributions of players to the T20 World Cup in this engaging section. From participation and wins across years to standout performances, we've got it all! 
-
+    Explore the incredible contributions of players to the T20 World Cup in this engaging section. From participation and wins across years to standout performances, we've got it all!
     """)
 
+    # Ensure Match Year is calculated
     if 'Match Year' not in wc_final_data_df.columns:
         wc_final_data_df['Match Year'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce').dt.year
 
-    all_years = pd.Series(range(2007, 2025))
-    
-    # Team 1 participation and wins
-    team1_participation = wc_final_data_df.groupby(['Match Year', 'Team1']).size().reset_index(name='Total Participation')
-    team1_wins = wc_final_data_df[wc_final_data_df['Winner'] == wc_final_data_df['Team1']].groupby('Match Year').size().reset_index(name='Total Wins')
-    team1_stats = pd.merge(all_years.to_frame(name='Match Year'), team1_participation, how='left', on='Match Year')
-    team1_stats = pd.merge(team1_stats, team1_wins, how='left', on='Match Year')
-    team1_stats['Total Participation'] = team1_stats['Total Participation'].fillna(0)
-    team1_stats['Total Wins'] = team1_stats['Total Wins'].fillna(0)
+    # Function to calculate team stats
+    def calculate_team_stats(df, team_col, winner_col):
+        """Calculate participation and wins for a specific team column."""
+        participation = df.groupby(['Match Year', team_col]).size().reset_index(name='Participation')
+        wins = df[df[winner_col] == df[team_col]].groupby(['Match Year', team_col]).size().reset_index(name='Wins')
+        return pd.merge(participation, wins, how='left', on=['Match Year', team_col]).fillna(0)
 
-    # Team 2 participation and wins
-    team2_participation = wc_final_data_df.groupby(['Match Year', 'Team2']).size().reset_index(name='Total Participation')
-    team2_wins = wc_final_data_df[wc_final_data_df['Winner'] == wc_final_data_df['Team2']].groupby('Match Year').size().reset_index(name='Total Wins')
-    team2_stats = pd.merge(all_years.to_frame(name='Match Year'), team2_participation, how='left', on='Match Year')
-    team2_stats = pd.merge(team2_stats, team2_wins, how='left', on='Match Year')
-    team2_stats['Total Participation'] = team2_stats['Total Participation'].fillna(0)
-    team2_stats['Total Wins'] = team2_stats['Total Wins'].fillna(0)
+    # Calculate stats for Team1 and Team2
+    team1_stats = calculate_team_stats(wc_final_data_df, 'Team1', 'Winner')
+    team2_stats = calculate_team_stats(wc_final_data_df, 'Team2', 'Winner')
 
-    # Combined Bar and Line Plot for Team 1 and Team 2
+    # Combined Bar and Line Plot
     st.subheader("Head-to-Head Wins Between Teams")
     st.markdown("""
     Dive into the intense rivalries between Team 1 and Team 2! This section showcases the number of times one team has defeated the other in direct matchups, giving a sense of which team holds the upper hand.
     """)
-    fig_team1_team2 = go.Figure()
-    fig_team1_team2.add_trace(go.Bar(
-        x=team1_stats['Match Year'], 
-        y=team1_stats['Total Participation'], 
-        name='Team 1 Participation', 
-        marker_color=px.colors.sequential.Viridis[3],  # Viridis color for Team 1 Participation
-        yaxis='y'
-    ))
-    fig_team1_team2.add_trace(go.Scatter(
-        x=team1_stats['Match Year'], 
-        y=team1_stats['Total Wins'], 
-        mode='lines', 
-        name='Team 1 Wins', 
-        line=dict(color=px.colors.sequential.Viridis[6]),  # Viridis color for Team 1 Wins
-        yaxis='y2'
-    ))
-    fig_team1_team2.add_trace(go.Bar(
-        x=team2_stats['Match Year'], 
-        y=team2_stats['Total Participation'], 
-        name='Team 2 Participation', 
-        marker_color=px.colors.sequential.Viridis[1],  # Viridis color for Team 2 Participation
-        yaxis='y'
-    ))
-    fig_team1_team2.add_trace(go.Scatter(
-        x=team2_stats['Match Year'], 
-        y=team2_stats['Total Wins'], 
-        mode='lines', 
-        name='Team 2 Wins', 
-        line=dict(color=px.colors.sequential.Viridis[9]),  # Viridis color for Team 2 Wins
-        yaxis='y2'
-    ))
 
-    fig_team1_team2.update_layout(
-        title='WC Participation (Bar) and Wins (Line) for Team 1 and Team 2 Over The Years',
-        xaxis_title='Match Year',
-        yaxis=dict(
-            title='Total Participation',
-            showgrid=False
-        ),
-        yaxis2=dict(
-            title='Total Wins',
-            overlaying='y',
-            side='right',
-            showgrid=False
-        ),
-        width=1000,
-        height=600,
-        barmode='group',
-        hovermode='closest'
-    )
-    st.plotly_chart(fig_team1_team2, use_container_width=True)
+    # Function to create a combined bar and line plot
+    def create_combined_plot(stats, team, colors):
+        """Create a combined bar and line plot for participation and wins."""
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=stats['Match Year'], 
+            y=stats['Participation'], 
+            name=f'{team} Participation', 
+            marker_color=colors[0]
+        ))
+        fig.add_trace(go.Scatter(
+            x=stats['Match Year'], 
+            y=stats['Wins'], 
+            mode='lines', 
+            name=f'{team} Wins', 
+            line=dict(color=colors[1])
+        ))
+        fig.update_layout(
+            title=f'{team} WC Participation (Bar) and Wins (Line) Over the Years',
+            xaxis_title='Match Year',
+            yaxis=dict(title='Participation'),
+            yaxis2=dict(title='Wins', overlaying='y', side='right'),
+            barmode='group',
+            hovermode='closest',
+            width=1000,
+            height=600
+        )
+        return fig
 
-    # Head-to-Head Wins Analysis
-    win_counts = all_matches_data_df.groupby(['Winner', 'Team1', 'Team2']).size().reset_index(name='Wins')
-    win_counts['Hover Text'] = win_counts.apply(lambda row: f"Team 1: {row['Team1']}<br>Team 2: {row['Team2']}<br>Winner: {row['Winner']}<br>Wins: {row['Wins']}", axis=1)
+    # Generate plots for Team1 and Team2
+    fig_team1 = create_combined_plot(team1_stats, 'Team 1', [px.colors.sequential.Viridis[3], px.colors.sequential.Viridis[6]])
+    fig_team2 = create_combined_plot(team2_stats, 'Team 2', [px.colors.sequential.Viridis[1], px.colors.sequential.Viridis[9]])
 
-    # Stacked Bar Chart for Wins of Team 1 Against Team 2
-    fig_team1_over_team2 = px.bar(
-        win_counts,
-        x='Team1',
-        y='Wins',
-        color='Winner',
-        title='Wins of Team 1 Against Team 2',
-        labels={'Wins': 'Number of Wins', 'Team1': 'Team 1'},
-        text='Wins',
-        hover_name='Hover Text',
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
-    )
-    fig_team1_over_team2.update_layout(
-        xaxis_title='Team 1',
-        yaxis_title='Number of Wins',
-        hovermode='closest',
-        barmode='stack',
-        xaxis_tickangle=-45
-    )
-
-    # Stacked Bar Chart for Wins of Team 2 Against Team 1
-    fig_team2_over_team1 = px.bar(
-        win_counts,
-        x='Team2',
-        y='Wins',
-        color='Winner',
-        title='Wins of Team 2 Against Team 1',
-        labels={'Wins': 'Number of Wins', 'Team2': 'Team 2'},
-        text='Wins',
-        hover_name='Hover Text',
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
-    )
-    fig_team2_over_team1.update_layout(
-        xaxis_title='Team 2',
-        yaxis_title='Number of Wins',
-        hovermode='closest',
-        barmode='stack',
-        xaxis_tickangle=-45
-    )
-
-    # Display the visualizations side by side
+    # Display side-by-side
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig_team1_over_team2, use_container_width=True)
+        st.plotly_chart(fig_team1, use_container_width=True)
     with col2:
-        st.plotly_chart(fig_team2_over_team1, use_container_width=True)
+        st.plotly_chart(fig_team2, use_container_width=True)
 
-
+    # Player Participation Trends
     st.subheader("Player Participation Trends")
     st.markdown("""
     Watch how teams have been represented by their players over the years. This section highlights how many players from each country participated in different tournaments, giving a sense of their consistent presence in the competition.
     """)
-    # Calculate player participation trends
-    players_by_country = players_df['Team'].value_counts()
-    player_participation_trends = players_df.groupby(['Year', 'Team']).size().reset_index(name='Player Count')
-    player_distribution = player_participation_trends.pivot_table(index='Year', columns='Team', values='Player Count', fill_value=0)
-    all_years = pd.DataFrame({'Year': list(range(2007, 2025))})
-    all_teams = player_participation_trends['Team'].unique()
-    all_years_teams = pd.MultiIndex.from_product([all_years['Year'], all_teams], names=['Year', 'Team']).to_frame(index=False)
-    player_participation_trends = pd.merge(all_years_teams, player_participation_trends, on=['Year', 'Team'], how='left')
-    player_participation_trends['Player Count'] = player_participation_trends['Player Count'].fillna(0)
 
-    # Line chart for player participation trends
+    # Ensure all years and teams are represented
+    all_years = pd.DataFrame({'Year': range(2007, 2025)})
+    all_teams = players_df['Team'].unique()
+    grid = pd.MultiIndex.from_product([all_years['Year'], all_teams], names=['Year', 'Team']).to_frame(index=False)
+
+    # Merge with player data
+    player_data = pd.merge(grid, players_df.groupby(['Year', 'Team']).size().reset_index(name='Players'), how='left')
+    player_data['Players'] = player_data['Players'].fillna(0)
+
+    # Line chart for participation trends
     fig_players = px.line(
-        player_participation_trends, 
+        player_data, 
         x='Year', 
-        y='Player Count', 
+        y='Players', 
         color='Team', 
         title='Player Participation Trends Over the Years by Country',
-        labels={'Player Count': 'Number of Players', 'Year': 'Year'},
+        labels={'Players': 'Number of Players', 'Year': 'Year'},
         template='plotly_white',
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+        color_discrete_sequence=px.colors.sequential.Viridis
     )
+    st.plotly_chart(fig_players, use_container_width=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_players, use_container_width=True)
-    with col2:
-        st.dataframe(player_participation_trends, use_container_width=True)
-
-    # Players with the longest participation
+    # Legends of Longevity
     st.subheader("Legends of Longevity")
     st.markdown("""
     Meet the players who have participated in the most World Cups for their teams. Their dedication to the game shines through in this section, celebrating their enduring contributions to cricket.
     """)
+
     player_participation = players_df.groupby(['Player Name', 'Team'])['Year'].nunique().reset_index(name='Years Participated')
     longest_participation = player_participation.loc[player_participation.groupby('Team')['Years Participated'].idxmax()]
 
@@ -1257,48 +1181,53 @@ elif ui_section == "Player Glory":
         labels={'Years Participated': 'Number of Years', 'Team': 'Team'},
         text='Player Name',
         template='plotly_white',
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+        color_discrete_sequence=px.colors.sequential.Viridis
+    )
+    fig_longest_participation .update_layout(
+    xaxis={'categoryorder': 'total descending'}
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_longest_participation, use_container_width=True)
-    with col2:
-        st.dataframe(longest_participation, use_container_width=True)
+    st.plotly_chart(fig_longest_participation, use_container_width=True)
 
-    # Merging captains_df and players_df to include captaincy information
-       
+    # Captains Who Led the Way
+    st.subheader("Captains Who Led the Way")
+    st.markdown("""
+    Leadership matters! Discover the captains who led their teams for the longest time in World Cups. These individuals not only inspired their teammates but also etched their names in cricketing history.
+    """)
+
     if 'Year' in players_df.columns and 'Year' in captains_df.columns:
-        merged_data_captains = pd.merge(players_df, captains_df, on=['Player Name', 'Team', 'Year'], how='inner')
-
-        # Players with the longest captaincy duration
-        captain_durations = merged_data_captains.groupby(['Player Name', 'Team'])['Year'].nunique().reset_index(name='Captaincy Duration')
+        merged_captains = pd.merge(players_df, captains_df, on=['Player Name', 'Team', 'Year'], how='inner')
+        captain_durations = merged_captains.groupby(['Player Name', 'Team'])['Year'].nunique().reset_index(name='Captaincy Duration')
         longest_captaincy = captain_durations.loc[captain_durations.groupby('Team')['Captaincy Duration'].idxmax()]
 
-        # Bar chart for captains with longest durations
         fig_longest_captains = px.bar(
             longest_captaincy, 
             x='Team', 
             y='Captaincy Duration', 
             color='Player Name', 
             title='Captains with the Longest Duration for Each Team',
-            labels={'Captaincy Duration': 'Number of Years as Captain', 'Team': 'Team'},
+            labels={'Captaincy Duration': 'Years as Captain', 'Team': 'Team'},
             text='Player Name',
             template='plotly_white',
-            color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+            color_discrete_sequence=px.colors.sequential.Viridis
         )
+        fig_longest_captains .update_layout(
+        xaxis={'categoryorder': 'total descending'}
+        )
+        st.plotly_chart(fig_longest_captains, use_container_width=True)
     else:
-        st.write("Error: 'Year' column is missing in either players_df or captains_df.")
+        st.error("Required columns missing in players or captains dataset.")
 
-    # Merging all_matches_data_df and players_df to calculate wins
+    # Top Match Winners
+    st.subheader("Top Match Winners")
+    st.markdown("""
+    Find out which players secured the most wins for their teams. This section highlights the standout performers who consistently delivered victories, earning them a spot in cricketing glory.
+    """)
+
     merged_data = pd.merge(all_matches_data_df, players_df, how='inner', left_on='Winner', right_on='Team')
     player_wins = merged_data.groupby(['Player Name', 'Team']).size().reset_index(name='Wins')
-
-    # Top players by wins
     top_players_by_wins = player_wins.loc[player_wins.groupby('Team')['Wins'].idxmax()]
 
-    # Funnel Plot for players with maximum wins
-    
     fig_funnel = px.funnel(
         top_players_by_wins, 
         x='Player Name', 
@@ -1307,28 +1236,13 @@ elif ui_section == "Player Glory":
         title='Wins by Top Player for Each Team',
         labels={'Wins': 'Number of Wins', 'Player Name': 'Player Name'},
         template='plotly_white',
-        color_discrete_sequence=px.colors.sequential.Viridis  # Use Viridis palette
+        color_discrete_sequence=px.colors.sequential.Viridis
     )
-    st.subheader("Top Match Winners")
-    st.markdown("""
-    Find out which players secured the most wins for their teams. This section highlights the standout performers who consistently delivered victories, earning them a spot in cricketing glory.
-    """)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_funnel, use_container_width=True)
-    with col2:
-        st.dataframe(top_players_by_wins, use_container_width=True)
-    
-    #Captains
-    st.subheader("Captains Who Led the Way")
-    st.markdown("""
-        Leadership matters! Discover the captains who led their teams for the longest time in World Cups. These individuals not only inspired their teammates but also etched their names in cricketing history.
-        """)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_longest_captains, use_container_width=True)
-    with col2:
-        st.dataframe(longest_captaincy, use_container_width=True)
+    fig_funnel .update_layout(
+    xaxis={'categoryorder': 'total descending'}
+    )
+    st.plotly_chart(fig_funnel, use_container_width=True)
+
 
 
 
