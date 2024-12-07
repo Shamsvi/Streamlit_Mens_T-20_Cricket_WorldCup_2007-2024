@@ -405,6 +405,8 @@ elif section_selector == ds_name:
         [
             "Welcome!",
             "About the Data",
+            "Data Journey: From Raw to Revelations",
+            "Cracking the Mystery of Missingness",
             "Cricket Stats",
             "Feature Factory",
             "Modeling the Game: Unveiling Predictions",
@@ -1708,6 +1710,109 @@ elif ds_section == "About the Data":
     
     From match results to player stats, and even a list of legendary captains, these datasets fuel the insights and visualizations you’ll see in this app. Dive in and explore the cricketing data that tells the story of T20 World Cup history!
     """)
+
+
+
+
+
+############################################################################################################################
+
+elif ds_section == "Data Journey: From Raw to Revelations":
+    st.markdown("""
+    Welcome to the **Data Adventure Zone**! 🏏📊  
+
+    Our journey began with **Initial Data Analysis (IDA)**—the cleaning crew of our cricketing dataset. We took raw, messy data and turned it into something sparkling and ready for action. Here's a highlight reel of our efforts:  
+
+    - **T-20 Match Detective Work**: We went Sherlock Holmes on match identifiers, extracting those cryptic match numbers from strings (yes, including those pesky hashtags!).  
+    - **Time Machine Activated**: We broke down match dates into year, month, and day—giving us the flexibility to analyze cricketing trends like a pro.  
+    - **Column Magic**: Unnecessary baggage? Gone! Redundant columns like the original `Match Date` were retired after we grabbed the useful bits.  
+
+    With our data spick-and-span, it was time for **Exploratory Data Analysis (EDA)**—the playground of insights! Here’s what we did:  
+
+    - **Trends Galore**: We visualized how teams performed across the years, from participation to win percentages.  
+    - **Battlefields Unveiled**: Interactive maps showed us where cricketing history was made—team by team, ground by ground.  
+    - **Player Spotlights**: We dove into player statistics to uncover who shone the brightest and who delivered the most wins for their teams.  
+
+    Together, IDA and EDA gave us the foundation and the spark to bring this app to life. Now, it’s your turn to explore and uncover the stories hidden in the numbers. Enjoy the ride! 🚀  
+    """)
+
+
+
+
+############################################################################################################################
+
+elif ds_section == "Cracking the Mystery of Missingness":
+    st.subheader("🔍 Cracking the Mystery of Missingness")
+
+    st.markdown("""
+    Data is rarely perfect, but that's what makes it exciting! Here, we delve into the world of missing values in our cricket dataset to uncover patterns and make informed decisions.  
+
+    ### **No Missingness at the Start!**  
+    Initially, we were delighted to find no missing values in our dataset. However, as we dived deeper, analyzing other data files, we encountered some gaps—small but significant. Below is what we explored:
+    """)
+    missing_values_all_matches = all_matches_data_df.isnull().sum()
+    missing_values_wc_final_dataset = wc_final_data_df.isnull().sum()
+    missing_values_players = players_df.isnull().sum()
+    missing_values_captains = captains_df.isnull().sum()
+
+    missing_values = wc_final_data_df.isnull().sum()
+
+    # Display the missing values in each column
+    missing_values
+
+    st.markdown("""
+    ### **What We Found:**  
+    Our primary dataset (`wc_final_data_df`) showed missing values in two specific columns:  
+    - **Margin (Runs)**: 166 missing values  
+    - **Margin (Wickets)**: 169 missing values  
+
+    Why the gaps? Matches are either decided by runs or wickets—so when one margin is present, the other is naturally missing. This is structured missingness, tied to how the game was decided. Here's a heatmap highlighting the missing values in the dataset:
+    """)
+    # Define functions 
+    def extract_numeric_value(value):
+        match = re.search(r'\d+', str(value))
+        return int(match.group()) if match else None
+    def extract_t20_int_match(value):
+        match = re.search(r'# (\d+)', str(value))  # Extract the number after the hash symbol
+        return int(match.group(1)) if match else None
+
+    # Margins Column into Margb (runs) and Margin (Wickets)
+    def extract_runs_correct(margin):
+        if isinstance(margin, str) and 'runs' in margin:
+            return float(margin.split()[0])  # Extract the number for runs
+        return None
+
+    def extract_wickets_correct(margin):
+        if isinstance(margin, str) and 'wickets' in margin:
+            return float(margin.split()[0])  # Extract the number for wickets
+        return None
+
+    # 
+    wc_final_data_df['Margin (Runs)'] = wc_final_data_df['Margin'].apply(extract_runs_correct)
+    wc_final_data_df['Margin (Wickets)'] = wc_final_data_df['Margin'].apply(extract_wickets_correct)
+
+    # Display the updated dataframe with the new columns
+    wc_final_data_df[['Margin', 'Margin (Runs)', 'Margin (Wickets)']].head()
+
+    # Save the updated dataframe
+    wc_final_data_df.to_csv('updated_wc_final_data_df.csv', index=False)
+
+    # Plot missingness heatmap for wc_final_data_df
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.heatmap(wc_final_data_df.isnull(), cmap="YlGnBu", cbar=True, yticklabels=False, ax=ax)
+    ax.set_title('Missingness Heatmap for the Entire Dataset')
+    st.pyplot(fig)
+
+    st.markdown("""
+    ### **Investigating Patterns:**  
+    When we analyzed the relationship between these columns, we found them to be **highly inversely correlated**. This means:  
+    - If `Margin (Runs)` is present, `Margin (Wickets)` is missing, and vice versa.  
+
+    This indicates a **Missing at Random (MAR)** pattern, where the missingness is dependent on the match's outcome type. To handle this, we replaced the NaN values in these columns with `0`, as they represent cases where the respective metric was irrelevant.  
+
+    By addressing missingness in a structured way, we ensured that the integrity of our dataset remains intact, paving the way for accurate analysis and meaningful insights! 🏏
+    """)
+
 
 
 
