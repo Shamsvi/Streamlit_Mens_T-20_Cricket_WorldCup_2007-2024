@@ -4,14 +4,16 @@ import numpy as np
 import requests
 from io import BytesIO
 import plotly.express as px
-import plotly.graph_objs as go  
+import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import warnings
 import base64
 import joblib
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, StandardScaler
+from sklearn.preprocessing import (
+    OneHotEncoder, LabelEncoder, MinMaxScaler, StandardScaler
+)
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -25,8 +27,9 @@ from sklearn.metrics import (
     confusion_matrix,
     ConfusionMatrixDisplay
 )
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import RandomOverSampler
 from itertools import combinations
+
 
 
 
@@ -2156,186 +2159,219 @@ elif ds_section == "Feature Factory":
 ############################################################################################################################
 
 
-# URLs for models
-LOG_REG_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/logistic_regression_model.pkl"
-RF_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/random_forest_model.pkl"
-XGB_MODEL_URL = "https://github.com/Shamsvi/Streamlit_Mens_T-20_Cricket_WorldCup_2007-2024/raw/main/xgboost_model.pkl"
-
-# Preprocessing Function
-@st.cache_data
-def preprocess_data(df, required_features):
-    missing_features = [feature for feature in required_features if feature not in df.columns]
-    if missing_features:
-        return None, None, None, None, missing_features
-
-    X = df[required_features]
-    y = df['Team1 Win']
-    if y.nunique() <= 1:
-        return None, None, None, None, ["Target variable 'Team1 Win' does not have enough variability."]
-    
-    smote = SMOTE(random_state=42)
-    X_balanced, y_balanced = smote.fit_resample(X, y)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
-    )
-    return X_train, X_test, y_train, y_test, None
-
-# Load Models
-@st.cache_resource
-def load_models():
-    urls = {
-        "log_reg": LOG_REG_MODEL_URL,
-        "rf": RF_MODEL_URL,
-        "xgb": XGB_MODEL_URL
-    }
-
-    models = {}
-    for model_name, url in urls.items():
-        try:
-            response = requests.get(url)
-            response.raise_for_status()  # Raise an error for HTTP issues
-            models[model_name] = joblib.load(BytesIO(response.content))
-        except Exception as e:
-            st.error(f"Error loading model from {url}: {e}")
-            models[model_name] = None
-
-    # Ensure all models are loaded
-    if all(models.values()):
-        return models["log_reg"], models["rf"], models["xgb"]
-    else:
-        st.error("Failed to load one or more models. Please check the URLs or model availability.")
-        return None, None, None
-
-# Interactive Confusion Matrix
-def interactive_confusion_matrix(y_test, predictions, model_name):
-    """
-    Display an interactive confusion matrix for the selected model.
-    """
-    cm = confusion_matrix(y_test, predictions)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    
-    # Adjust the size of the plot
-    fig, ax = plt.subplots(figsize=(3, 3))  # Reduced size
-    disp.plot(ax=ax, cmap=plt.cm.Blues, colorbar=False)
-    plt.title(f"Confusion Matrix: {model_name}")
-    st.pyplot(fig)
-    
-
-# Modeling Section
 if ds_section == "Modeling the Game: Unveiling Predictions":
 
-    # Check Winner Column
-    if 'Winner' in updated_wc_final_data_df.columns:
-        updated_wc_final_data_df.loc[:, 'Team1 Win'] = updated_wc_final_data_df.apply(
-            lambda row: 1 if row['Winner'] == row['Team1'] else 0, axis=1
-        )
+    # Preprocessing Function
+    @st.cache_data
+    def preprocess_data(df, required_features):
+        missing_features = [feature for feature in required_features if feature not in df.columns]
+
+        # Add missing features with default values
+        for feature in missing_features:
+            df[feature] = 0  # Assign default value to missing features
+
+        # Validate features again
+        missing_features = [feature for feature in required_features if feature not in df.columns]
+        if missing_features:
+            return None, None, None, None, None, [f"Missing features even after imputation: {missing_features}"]
+
+        X = df[required_features]
+        y = df['Winner']
+
+        # Handle rare classes
+        class_counts = y.value_counts()
+        rare_classes = class_counts[class_counts < 2].index
+        if not rare_classes.empty:
+            df = df[~df['Winner'].isin(rare_classes)]
+            X = df[required_features]
+            y = df['Winner']
+
+        if y.nunique() <= 1:
+            return None, None, None, None, None, ["Target variable 'Winner' does not have enough variability."]
+        
+        label_encoder = LabelEncoder()
+        y_encoded = label_encoder.fit_transform(y)  # Encode categorical winners as numeric labels
+        
+        try:
+            # Apply RandomOverSampler for balancing
+            ros = RandomOverSampler(random_state=42)
+            X_balanced, y_balanced = ros.fit_resample(X, y_encoded)
+        except ValueError as e:
+            st.error(f"Error during oversampling: {e}")
+            return None, None, None, None, None, ["Error during balancing the dataset."]
+
+        try:
+            X_train, X_test, y_train, y_test = train_test_split(
+                X_balanced, y_balanced, test_size=0.3, random_state=42, stratify=y_balanced
+            )
+        except ValueError as e:
+            st.error(f"Error during train-test split: {e}")
+            return None, None, None, None, None, ["Insufficient data to perform stratified splitting."]
+        
+        return X_train, X_test, y_train, y_test, label_encoder, None
+
+    # Interactive Confusion Matrix with Class Labels
+    def interactive_confusion_matrix(y_test, predictions, model_name, label_encoder):
+        """
+        Display a confusion matrix with labeled sections (True Positive, False Positive, etc.).
+        """
+        cm = confusion_matrix(y_test, predictions)
+        labels = label_encoder.classes_
+        
+        # Create a labeled confusion matrix
+        labeled_cm = pd.DataFrame(cm, index=labels, columns=labels)
+        
+        # Generate the confusion matrix as a heatmap
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(labeled_cm, annot=True, fmt="d", cmap="coolwarm", cbar=False, linewidths=0.5, linecolor="black", ax=ax)
+        
+        ax.set_title(f"Confusion Matrix: {model_name}", fontsize=14)
+        ax.set_xlabel("Predicted Class", fontsize=12)
+        ax.set_ylabel("Actual Class", fontsize=12)
+        plt.xticks(rotation=45)
+        
+        st.pyplot(fig)
+
+    # Modeling Section
+    if 'updated_wc_final_data_df' in locals():
+        if 'Winner' not in updated_wc_final_data_df.columns:
+            st.error("The 'Winner' column is missing or incorrectly populated in the dataset.")
+            st.stop()
+
+        st.title("Modeling the Game: Unveiling Predictions")
+        st.write("""
+        **Step into the Analytics Dugout!**
+                 
+        In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. It's like having your own expert cricket analyst, but powered by algorithms! We compare the performances of Logistic Regression, Random Forest, and XGBoost to see which model hits the boundary and predicts match outcomes with the most accuracy.
+
+        But that's not all—this section also introduces Confusion Matrices, a powerful tool for evaluating model performance. A confusion matrix shows how well a model distinguishes between different classes by displaying the actual versus predicted outcomes for each class, with the diagonal values indicating correct predictions and the off-diagonal values representing misclassifications.
+
+        Since we're handling a multiclass classification problem, the confusion matrix displays results for all possible classes (e.g., predictions for Afghanistan, India, Australia, etc.) rather than a simplified 2x2 binary classification matrix. In this scenario, the diagonal values represent correct predictions for each class, while the off-diagonal values represent misclassifications.🚀""")
+
+        required_features = [
+            'Team1 Strength Index', 'Team2 Strength Index', 
+            'Batting Disparity', 'Bowling Disparity', 
+            'Rolling Margin (Runs)', 'Rolling Margin (Wickets)', 
+            'Home Advantage'
+        ]
+
+        # Preprocess Data
+        X_train, X_test, y_train, y_test, label_encoder, issues = preprocess_data(updated_wc_final_data_df, required_features)
+        if issues:
+            for issue in issues:
+                st.error(issue)
+            st.stop()
+
+        # Scale the Features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train Models
+        log_reg = LogisticRegression(max_iter=5000, random_state=42)
+        log_reg.fit(X_train_scaled, y_train)
+
+        rf_clf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_clf.fit(X_train, y_train)
+
+        xgb_clf = XGBClassifier(n_estimators=100, random_state=42, eval_metric="mlogloss")
+        xgb_clf.fit(X_train, y_train)
+
+        # Evaluate Models
+        models = {
+            "Logistic Regression": log_reg,
+            "Random Forest": rf_clf,
+            "XGBoost": xgb_clf
+        }
+
+        results = {}
+        for model_name, model in models.items():
+            if model_name == "Logistic Regression":
+                y_pred = model.predict(X_test_scaled)
+            else:
+                y_pred = model.predict(X_test)
+            metrics = {
+                "Accuracy (%)": round(accuracy_score(y_test, y_pred) * 100, 2),
+                "Precision (%)": round(precision_score(y_test, y_pred, average="weighted") * 100, 2),
+                "Recall (%)": round(recall_score(y_test, y_pred, average="weighted") * 100, 2),
+                "F1-Score (%)": round(f1_score(y_test, y_pred, average="weighted") * 100, 2)
+            }
+            results[model_name] = metrics
+            st.subheader(f"{model_name} Evaluation Table")
+            st.write(pd.DataFrame(metrics, index=["Value"]).T)
+            interactive_confusion_matrix(y_test, y_pred, model_name, label_encoder)
+
+            # Add Descriptions and Deductions for Each Model
+            if model_name == "Logistic Regression":
+                st.write("""
+                **About Logistic Regression:**
+                Logistic Regression is a linear model that predicts probabilities of outcomes using a logistic function. 
+                It is straightforward, interpretable, and performs well on linearly separable data.
+
+                **Deductions:**
+                - Ideal for datasets with a linear relationship between features and target variable.
+                - May struggle with complex, non-linear interactions or when the dataset has a large number of classes.
+                """)
+            elif model_name == "Random Forest":
+                st.write("""
+                **About Random Forest:**
+                Random Forest is an ensemble learning method that creates multiple decision trees and aggregates their results.
+                It excels in handling non-linear relationships and complex datasets with noisy features.
+
+                **Deductions:**
+                - Provides robust performance by reducing overfitting through ensembling.
+                - Particularly useful when feature interactions are important in determining outcomes.
+                - Provides feature importance scores for model interpretability.
+                """)
+            elif model_name == "XGBoost":
+                st.write("""
+                **About XGBoost:**
+                XGBoost is a gradient boosting algorithm known for its speed and performance. 
+                It iteratively builds trees to correct errors made in previous iterations.
+
+                **Deductions:**
+                - Highly effective for large, complex datasets with many features.
+                - Its regularization parameters help reduce overfitting and improve generalization.
+                - The iterative learning approach makes it capable of capturing intricate patterns in the data.
+                """)
+
+        # Model Performance Comparison
+        st.subheader("Model Performance Comparison")
+        results_df = pd.DataFrame(results).T
+        st.dataframe(results_df)
+
+        # Recommendation
+        best_model_name = results_df['F1-Score (%)'].idxmax()
+        st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving the highest F1-Score.")
     else:
-        st.error("The 'Winner' column is missing or incorrectly populated in the dataset.")
-        st.stop()
+        st.error("Dataset `updated_wc_final_data_df` is not loaded.")
 
-    st.title("Modeling the Game: Unveiling Predictions")
-    st.write("""
-    **Step into the Analytics Dugout!**
+
+    import joblib
+    import os
+
+    # Directory to save the models
+    save_dir = "models"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    # Save the models
+    joblib.dump(log_reg, os.path.join(save_dir, "logistic_regression_model.pkl"))
+    joblib.dump(rf_clf, os.path.join(save_dir, "random_forest_model.pkl"))
+    joblib.dump(xgb_clf, os.path.join(save_dir, "xgboost_model.pkl"))
+
     
-In this section, we use cutting-edge machine learning models to predict the outcomes of cricket matches. It's like having your own expert cricket analyst, but powered by algorithms! We compare the performances of Logistic Regression, Random Forest, and XGBoost to see which model hits the boundary and predicts match outcomes with the most accuracy.
 
-But that's not all—this section also introduces Confusion Matrices, a powerful tool for evaluating model performance. A confusion matrix shows how well a model distinguishes between different classes (e.g., "Team 1 Wins" vs. "Team 1 Loses") by providing counts of:
 
-- True Positives (TP): Correctly predicted wins.
-             
-- True Negatives (TN): Correctly predicted losses.
-             
-- False Positives (FP): Predicted a win when the team actually lost.
-             
-- False Negatives (FN): Predicted a loss when the team actually won.
-             
-This visual tool allows us to dive deeper into the predictions and see where the model excels and where it might falter. By comparing the confusion matrices of Logistic Regression, Random Forest, and XGBoost, you'll gain valuable insights into each model's strengths and weaknesses. Let’s explore! 🚀""")
 
-    required_features = [
-        'Team1 Strength Index', 'Team2 Strength Index', 
-        'Batting Disparity', 'Bowling Disparity', 
-        'Normalized Batting Difference', 'Normalized Bowling Difference', 
-        'Rolling Win %', 'Rolling Margin (Runs)', 'Rolling Margin (Wickets)', 
-        'Home Advantage'
-    ]
 
-    # Load Models
-    log_reg, rf_clf, xgb_clf = load_models()
 
-    if not log_reg or not rf_clf or not xgb_clf:
-        st.error("Failed to load one or more models. Please check the URLs or model availability.")
-        st.stop()
 
-    # Preprocess Data
-    X_train, X_test, y_train, y_test, issues = preprocess_data(updated_wc_final_data_df, required_features)
-    if issues:
-        for issue in issues:
-            st.error(issue)
-        st.stop()
 
-    # Logistic Regression Evaluation
-    st.subheader("Logistic Regression")
-    st.write("""
-    Logistic Regression is a linear model that predicts match outcomes based on probabilities. 
-    It works best when the relationship between the features and the target variable is linear.
-    """)
-    y_pred_log_reg = log_reg.predict(X_test)
-    log_reg_metrics = {
-        "Accuracy (%)": round(accuracy_score(y_test, y_pred_log_reg) * 100, 2),
-        "Precision (%)": round(precision_score(y_test, y_pred_log_reg) * 100, 2),
-        "Recall (%)": round(recall_score(y_test, y_pred_log_reg) * 100, 2),
-        "F1-Score (%)": round(f1_score(y_test, y_pred_log_reg) * 100, 2),
-        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_log_reg) * 100, 2),
-    }
-    st.write(pd.DataFrame(log_reg_metrics, index=["Value"]).T)
-    interactive_confusion_matrix(y_test, y_pred_log_reg, "Logistic Regression")
 
-    # Random Forest Evaluation
-    st.subheader("Random Forest")
-    st.write("""
-    Random Forest is an ensemble learning method that constructs multiple decision trees to 
-    predict match outcomes. It handles non-linear relationships and provides feature importance scores.
-    """)
-    y_pred_rf = rf_clf.predict(X_test)
-    rf_metrics = {
-        "Accuracy (%)": round(accuracy_score(y_test, y_pred_rf) * 100, 2),
-        "Precision (%)": round(precision_score(y_test, y_pred_rf) * 100, 2),
-        "Recall (%)": round(recall_score(y_test, y_pred_rf) * 100, 2),
-        "F1-Score (%)": round(f1_score(y_test, y_pred_rf) * 100, 2),
-        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_rf) * 100, 2),
-    }
-    st.write(pd.DataFrame(rf_metrics, index=["Value"]).T)
-    interactive_confusion_matrix(y_test, y_pred_rf, "Random Forest")
 
-    # XGBoost Evaluation
-    st.subheader("XGBoost")
-    st.write("""
-    XGBoost is a gradient boosting method that iteratively improves predictions by focusing on errors. 
-    It's highly efficient and can handle both linear and non-linear relationships effectively.
-    """)
-    y_pred_xgb = xgb_clf.predict(X_test)
-    xgb_metrics = {
-        "Accuracy (%)": round(accuracy_score(y_test, y_pred_xgb) * 100, 2),
-        "Precision (%)": round(precision_score(y_test, y_pred_xgb) * 100, 2),
-        "Recall (%)": round(recall_score(y_test, y_pred_xgb) * 100, 2),
-        "F1-Score (%)": round(f1_score(y_test, y_pred_xgb) * 100, 2),
-        "ROC-AUC (%)": round(roc_auc_score(y_test, y_pred_xgb) * 100, 2),
-    }
-    st.write(pd.DataFrame(xgb_metrics, index=["Value"]).T)
-    interactive_confusion_matrix(y_test, y_pred_xgb, "XGBoost")
 
-    # Model Performance Comparison
-    results_df = pd.DataFrame(
-        [log_reg_metrics, rf_metrics, xgb_metrics],
-        index=["Logistic Regression", "Random Forest", "XGBoost"]
-    )
-    
-    st.subheader("Model Performance Comparison")
-    st.dataframe(results_df)
 
-    # Recommendation
-    best_model_name = results_df['F1-Score (%)'].idxmax()
-    st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving the highest F1-Score.")
 
 
 
@@ -2634,6 +2670,7 @@ elif ds_section == "Forecasting the Next Champions":
                 st.success(f"The predicted winner is: **{winner}**")
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
+
 
 
 
