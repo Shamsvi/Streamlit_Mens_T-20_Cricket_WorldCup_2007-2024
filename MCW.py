@@ -632,7 +632,6 @@ elif ui_section == "Team Battles":
         color='Matches',
         hover_name='Country',
         hover_data=['Matches'],
-        title='Total Matches Played by Each Team',
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
 
@@ -750,7 +749,6 @@ elif ui_section == "Team Battles":
         color='Wins',
         hover_name='Country',
         hover_data=['Wins'],
-        title='Total Wins by Country (Teams)',
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
 
@@ -833,10 +831,23 @@ elif ui_section == "Team Battles":
         text='Titles',
         hover_data={'Final Dates': True},
         labels={'Titles': 'Number of Titles', 'Winner': 'Team'},
-        title='T20 World Cup Title Holders',
         color='Titles',
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
+    st.markdown("""
+    ### 🏆 **T20 World Cup Title Holders** 
+
+    Step into the Hall of Fame of **T20 Cricket Legends**! 🌟 
+
+    Who has ruled the cricketing world in the shortest format? This section dives into the **T20 World Cup Title Holders**—the teams that have conquered the cricketing battlefield and lifted the coveted trophy. From thrilling super overs to unforgettable finals, these are the champions who have etched their names in the annals of cricketing history. 🥇🏏
+
+    🌍 **What’s Inside?**
+    - A **bar chart** showcasing the number of T20 titles each team has won.
+    - Hover over the bars to relive the exact dates of their epic victories. 📅
+    - Find out who’s leading the charge and who’s gearing up to join the elite club.
+
+    Let’s explore the kings of T20 cricket and their journeys to glory! 🚀
+    """)
 
     st.plotly_chart(fig_titles)
 
@@ -965,6 +976,9 @@ elif ui_section == "Ground Chronicles":
     fig_grounds_bar.update_layout(
         xaxis_title='Ground',
         yaxis_title='Number of Matches',)
+    fig_grounds_bar.update_layout(
+    xaxis={'categoryorder': 'total descending'}
+)
     #Geospatial chart
     fig_grounds = px.scatter_geo(merged_data,
                         lat='Lat',
