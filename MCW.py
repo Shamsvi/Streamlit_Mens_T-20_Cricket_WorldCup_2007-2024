@@ -563,7 +563,7 @@ if ui_section == "Welcome!":
 # Matches and Wins by each Team
 
 elif ui_section == "Team Battles":
-    st.subheader("Team Battles")
+    st.title("Team Battles")
     st.markdown("""
     Welcome to the **Matches and Wins by Each Team** section—a place where cricket history comes alive! 🏏
 
@@ -868,7 +868,7 @@ elif ui_section == "Team Battles":
 
 
 elif ui_section == "Ground Chronicles":
-    st.subheader("Ground Chronicles")
+    st.title("Ground Chronicles")
     st.write("""
     In this section, we explore the impact of different cricket grounds on match outcomes. We dive into the total matches played at each ground, the geographic distribution of these venues, and the winning trends at specific locations. Each visualization provides unique insights into how grounds influence team performances.
     """)    
@@ -1070,10 +1070,10 @@ elif ui_section == "Ground Chronicles":
 
 # Player Glory Section
 elif ui_section == "Player Glory":
-    st.subheader("Player Glory")
+    st.title("Player Glory")
+    st.subheader("Unveiling Player Glory")
     st.markdown("""
-    **Unveiling Player Glory**
-
+    
     Explore the incredible contributions of players to the T20 World Cup in this engaging section. From participation and wins across years to standout performances, we've got it all!
     """)
 
@@ -1328,7 +1328,8 @@ elif ui_section == "Forecasting the Next Champions":
             )
 
         # Forecasting Section
-        st.subheader("Predictions: Who Will Reign Supreme?")
+        st.title("Forecasting the Next Champions")
+        st.subheader(" Who Will Reign Supreme?")
         st.write("""
         The battle for cricket supremacy intensifies as we bring you an exciting glimpse into the future. 
         Imagine every team competing in a dramatic round-robin format, each match filled with edge-of-the-seat moments. 
@@ -1677,7 +1678,7 @@ Get ready to blend cricket passion with data brilliance, and let’s create some
 
 
 elif ds_section == "About the Data":
-    st.subheader("About the Data")
+    st.title("About the Data")
     st.markdown("""
     Welcome to the **Dataset Overview** section! Here’s everything you need to know about the data that powers this app.  
     
@@ -1759,8 +1760,8 @@ elif ds_section == "About the Data":
 
 # IDA and EDA Section in Streamlit
 elif ds_section == "Data Journey: From Raw to Revelations":
-
-    st.title("Welcome to the Data Adventure Zone! 🏏📊")
+    st.title( "Data Journey: From Raw to Revelations")
+    st.subheader("Welcome to the Data Adventure Zone! 🏏📊")
 
     st.markdown("""
     Our journey began with **Initial Data Analysis (IDA)**—the cleaning crew of our cricketing dataset. 
@@ -1798,7 +1799,7 @@ elif ds_section == "Data Journey: From Raw to Revelations":
 ############################################################################################################################
 
 elif ds_section == "Cracking the Mystery of Missingness":
-    st.subheader("🔍 Cracking the Mystery of Missingness")
+    st.title("🔍 Cracking the Mystery of Missingness")
 
     st.markdown("""
     Data is rarely perfect, but that's what makes it exciting! Here, we delve into the world of missing values in our cricket dataset to uncover patterns and make informed decisions.  
@@ -1878,7 +1879,7 @@ elif ds_section == "Cracking the Mystery of Missingness":
 
 
 elif ds_section == "Cricket Stats":
-    st.subheader("Cricket Stats: Hidden Stories Behind the Numbers 🏏")
+    st.title("Cricket Stats: Hidden Stories Behind the Numbers 🏏")
 
     # Match Margins Split by Runs and Wickets
     st.write(
@@ -2070,7 +2071,7 @@ elif ds_section == "Cricket Stats":
 
 
 elif ds_section == "Feature Factory":
-    st.subheader("Feature Factory: Cricket Analytics Unveiled")
+    st.title("Feature Factory: Cricket Analytics Unveiled")
     st.write(
         """
         In this section, we unveil the hidden stories behind cricket matches through engineered features. 
@@ -2487,7 +2488,8 @@ elif ds_section == "Forecasting the Next Champions":
             )
 
         # Forecasting Section
-        st.subheader("Predictions: Who Will Reign Supreme?")
+        st.title("Forecasting the Next Champions")
+        st.subheader("Who Will Reign Supreme?")
         st.write("""
         Let's dive into the exciting world of cricket analytics! 
         In this section, we simulate matchups between all teams in a thrilling round-robin format. 
