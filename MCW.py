@@ -1045,7 +1045,6 @@ elif ui_section == "Ground Chronicles":
                             x='Ground',
                             y='Matches',
                             labels={'Matches': 'Number of Matches', 'Ground': 'Ground'},
-                            title= 'Total No. of Matches Played at each Ground',
                             color='Matches',  
                             color_continuous_scale='Viridis',
                             text='Matches')  
