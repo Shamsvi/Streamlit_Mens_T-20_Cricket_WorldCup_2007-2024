@@ -338,6 +338,8 @@ with st.expander("📖 How to Navigate This App"):
     2. **🧪 Data Insights**  
         Aimed at users who love working with data and want to see the science behind cricket analytics:
        - **About the Data**: Understand the dataset powering the app.
+       - **IDA and EDA**: Journey of that data from raw to revelations
+       - **Missingness**: Dive into the world of missing values in our cricket dataset to uncover patterns and make informed decisions.
        - **Feature Exploration**: Dive into trends and key metrics.
        - **Feature Engineering**: See how raw data transforms into actionable insights.
        - **Modeling Matches**: Learn how machine learning predicts outcomes.
@@ -1615,32 +1617,52 @@ if ds_section  == "Welcome!":
     st.image(gif_url, use_container_width=True)
 
     st.markdown("""
-# Step into the Magical World of Cricket Analytics! 🏏✨
+    # Step into the Magical World of Cricket Analytics! 🏏✨
 
-Welcome to your gateway where **data meets discovery**! This app is your secret laboratory to uncover the science behind every six, every wicket, and every thrilling World Cup moment. Whether you’re a curious mind or a data enthusiast, get ready to explore, experiment, and predict like never before.
+    Welcome to your gateway where **data meets discovery**! This app is your secret laboratory to uncover the science behind every six, every wicket, and every thrilling World Cup moment. Whether you’re a curious mind or a data enthusiast, get ready to explore, experiment, and predict like never before.
 
-## **Here’s What Awaits You:**  
+    ## **Here’s What Awaits You:**  """)
 
-📊 **About the Data**  
-  Peek behind the curtains and understand the foundation of this exploration—our dataset! Learn about the features, variables, and data sources that drive the analytics.  
+    st.markdown(" **📊 About the Data**")
+    st.markdown("""
+    Peek behind the curtains and understand the foundation of this exploration—our dataset! Learn about the features, variables, and data sources that drive the analytics.  
+    """)
 
-📈 **Cricket Stats**  
-  Dive into the **Distribution of Features** and uncover fascinating trends and stories hidden within the data. From player performances to team dynamics, visualize how the numbers come alive to tell the story of the World Cup.
+    st.markdown("**📈 Cricket Stats**")
+    st.markdown("""
+    Dive into the **Distribution of Features** and uncover fascinating trends and stories hidden within the data. From player performances to team dynamics, visualize how the numbers come alive to tell the story of the World Cup.  
+    """)
 
-🛠️ **Feature Factory**  
-  The lab where the magic happens! This section breaks down the building blocks of cricket analytics, showing you how raw data transforms into meaningful insights. Discover engineered features that enhance predictions and uncover hidden relationships.
+    st.markdown(" **🧹 Data Journey: From Raw to Revelations**")
+    st.markdown("""
+    Our combined **IDA and EDA** section ensured the dataset was cleaned, structured, and explored. Key highlights included extracting match numbers, splitting margins into `Margin (Runs)` and `Margin (Wickets)`, and visualizing trends to uncover the stories behind the numbers.
+    """)
 
-🤖 **Modeling the Game: Unveiling Predictions**  
-  Take a step into the machine learning arena. See how advanced models like Logistic Regression, Random Forest, and XGBoost are trained to predict match outcomes. Dive into the performance metrics to understand what drives accurate predictions.
+    st.markdown(" **🔍 Cracking the Mystery of Missingness**")
+    st.markdown("""
+    Exploring missing data in the dataset revealed structured patterns of missingness, like the inverse relationship between `Margin (Runs)` and `Margin (Wickets)`. Using heatmaps and a missingness correlation matrix, we identified these patterns and handled the missing values effectively to maintain data integrity.
+    """)
 
-🔮 **Forecasting the Next Champions**  
-  Enter the **Predictor’s Playground** and try your hand at being the ultimate cricket soothsayer. With the power of advanced analytics, see which team has the best odds of taking home the next World Cup trophy.  
+    st.markdown("**🛠️ Feature Factory**")
+    st.markdown("""
+    The lab where the magic happens! This section breaks down the building blocks of cricket analytics, showing you how raw data transforms into meaningful insights. Discover engineered features that enhance predictions and uncover hidden relationships.
+    """)
 
-## **Who is This For?**  
-If you love playing with numbers, solving mysteries, or just want to see the “behind-the-scenes” magic of cricket analytics, this is your playground. It’s not just stats; it’s the art of making every number count!
+    st.markdown(" **🤖 Modeling the Game: Unveiling Predictions**")
+    st.markdown("""
+    Take a step into the machine learning arena. See how advanced models like Logistic Regression, Random Forest, and XGBoost are trained to predict match outcomes. Dive into the performance metrics to understand what drives accurate predictions.
+    """)
+
+    st.markdown("**🔮 Forecasting the Next Champions**")
+    st.markdown("""
+    Enter the **Predictor’s Playground** and try your hand at being the ultimate cricket soothsayer. With the power of advanced analytics, see which team has the best odds of taking home the next World Cup trophy.
+    """)
+
+    st.markdown("## **Who is This For?**  ")
+    st.markdown("""If you love playing with numbers, solving mysteries, or just want to see the “behind-the-scenes” magic of cricket analytics, this is your playground. It’s not just stats; it’s the art of making every number count!
 
 Get ready to blend cricket passion with data brilliance, and let’s create some magic together! 🏆✨  
-""")
+    """)
 
 
 
