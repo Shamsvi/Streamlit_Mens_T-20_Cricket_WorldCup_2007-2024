@@ -1717,24 +1717,40 @@ elif ds_section == "About the Data":
 
 ############################################################################################################################
 
+# IDA and EDA Section in Streamlit
 elif ds_section == "Data Journey: From Raw to Revelations":
+
+    st.title("Welcome to the Data Adventure Zone! 🏏📊")
+
     st.markdown("""
-    Welcome to the **Data Adventure Zone**! 🏏📊  
-
-    Our journey began with **Initial Data Analysis (IDA)**—the cleaning crew of our cricketing dataset. We took raw, messy data and turned it into something sparkling and ready for action. Here's a highlight reel of our efforts:  
-
-    - **T-20 Match Detective Work**: We went Sherlock Holmes on match identifiers, extracting those cryptic match numbers from strings (yes, including those pesky hashtags!).  
-    - **Time Machine Activated**: We broke down match dates into year, month, and day—giving us the flexibility to analyze cricketing trends like a pro.  
-    - **Column Magic**: Unnecessary baggage? Gone! Redundant columns like the original `Match Date` were retired after we grabbed the useful bits.  
-
-    With our data spick-and-span, it was time for **Exploratory Data Analysis (EDA)**—the playground of insights! Here’s what we did:  
-
-    - **Trends Galore**: We visualized how teams performed across the years, from participation to win percentages.  
-    - **Battlefields Unveiled**: Interactive maps showed us where cricketing history was made—team by team, ground by ground.  
-    - **Player Spotlights**: We dove into player statistics to uncover who shone the brightest and who delivered the most wins for their teams.  
-
-    Together, IDA and EDA gave us the foundation and the spark to bring this app to life. Now, it’s your turn to explore and uncover the stories hidden in the numbers. Enjoy the ride! 🚀  
+    Our journey began with **Initial Data Analysis (IDA)**—the cleaning crew of our cricketing dataset. 
+    We took raw, messy data and turned it into something sparkling and ready for action. Here's a highlight reel of our efforts:  
     """)
+
+    st.markdown("""
+    - **T-20 Match Detective Work**: We channeled our inner Sherlock Holmes to decode match identifiers, extracting cryptic T-20 match numbers from strings (yes, even those tricky hashtags!) and giving them their rightful place in our dataset.  
+    - **Time Machine Activated**: We broke down match dates into year, month, and day—unlocking the power to analyze cricketing trends like seasoned analysts.  
+    - **Margin Makeover**: Margins of victory were in mixed formats (runs or wickets), so we split them into two separate columns—`Margin (Runs)` and `Margin (Wickets)`—for cleaner and more precise analysis.  
+    - **Column Magic**: Unnecessary baggage? Gone! Redundant columns like the original `Match Date` were retired after we extracted all their valuable insights.  
+    """)
+
+    st.markdown("""
+    With our data spick-and-span, it was time for **Exploratory Data Analysis (EDA)**—the playground of insights! Here’s what we did:  
+    """)
+
+    st.markdown("""
+    - **Trends Galore**: Through engaging visualizations, we captured team performances across the years, from participation counts to win percentages.  
+    - **Battlefields Unveiled**: Interactive maps brought history to life, showing us where teams fought it out—team by team, ground by ground.  
+    - **Player Spotlights**: Player statistics became our focus, as we uncovered the stars who outshone the rest and the legends who delivered the most wins for their teams.  
+    """)
+
+    st.markdown("""
+    All these visualizations and more can be found in the **Fan Favorites** section of this app—crafted just for you!  
+
+    Together, IDA and EDA gave us the foundation and the spark to bring this app to life. 
+    Now, it’s your turn to explore and uncover the stories hidden in the numbers. Enjoy the ride! 🚀
+    """)
+
 
 
 
