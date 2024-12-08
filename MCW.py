@@ -596,8 +596,7 @@ elif ui_section == "Team Battles":
     # Combined Bar and Line Plot
     st.subheader("Head-to-Head Wins Between Teams")
     st.markdown("""
-    Dive into the intense rivalries between Team 1 and Team 2! This section showcases the number of times one team has defeated the other in direct matchups, giving a sense of which team holds the upper hand.
-    """)
+    Dive into the intense rivalries between cricketing giants! This section showcases how each team has fared in direct matchups over the years. From Team 1's performances to Team 2's victories, discover the number of times each team emerged victorious in these head-to-head battles. See detailed breakdowns of participation and wins for each team, year by year, and uncover who truly holds the upper hand in this gripping saga of cricketing clashes.     """)
 
     # Function to create a combined bar and line plot
     def create_combined_plot(stats, team, colors):
