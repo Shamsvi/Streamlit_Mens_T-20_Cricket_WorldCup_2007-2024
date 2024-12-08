@@ -24,7 +24,7 @@ The Men's Cricket World Cup is one of the most prestigious tournaments in the cr
 
 You can access the deployed Streamlit app directly without needing to install anything locally:
 ````
-https://mens-cricket-t20-worldcup2007-2024.streamlit.app
+https://cricketfever.streamlit.app/
 `````
 
 **Local Setup Instructions**
