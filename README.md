@@ -54,7 +54,7 @@ Installation Steps
 
     Once all dependencies are installed, you can run the Streamlit app with the following command:
    `````
-   streamlit run app.py
+   streamlit run MCW.py
 7. Access the App
 
     After running the Streamlit command, the app will be accessible locally in your browser. Navigate to:
