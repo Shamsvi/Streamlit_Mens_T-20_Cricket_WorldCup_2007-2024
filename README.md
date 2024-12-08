@@ -50,14 +50,14 @@ Explore the cricketing world like never before with this data-driven journey thr
 3. players_df: Player information for matches, loaded separately from a CSV file.
 4. captains_df: Dataset for the captainf of all of the teams in the all_matches_data_df and wc_final_data_df, for the years 2007-2024
     
-###**Live Demo**
+### **Live Demo**
 
 You can access the deployed Streamlit app directly without needing to install anything locally:
 ````
 https://cricketfever.streamlit.app/
 `````
 
-###**Local Setup Instructions**
+### **Local Setup Instructions**
 
 If you want to run the app locally for development or testing purposes, follow the steps below.
 
