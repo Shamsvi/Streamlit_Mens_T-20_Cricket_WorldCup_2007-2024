@@ -566,10 +566,6 @@ elif ui_section == "Team Battles":
     st.title("Team Battles")
     st.markdown("""
     Welcome to the **Matches and Wins by Each Team** section—a place where cricket history comes alive! 🏏
-
-    Here, you’ll find out how many matches each team has played over the years and where they’ve played them. 
-    We’ve got a colorful **bar chart** that shows the total matches for every team. Want to know where your favorite 
-    team has battled it out? Check out the interactive **map**, which highlights the countries where matches were played.
     """)
 
     # Ensure Match Year is calculated
@@ -647,7 +643,8 @@ elif ui_section == "Team Battles":
     with col2:
         st.plotly_chart(fig_team2, use_container_width=True)
 
-
+    st.subheader("Total Matches Played by Each Team")
+    st.markdown(" Here, you’ll find out how many matches each team has played over the years. We’ve got a colorful **bar chart** that shows the total matches for every team. Want to know where your favorite  team is from? Check out the interactive **world map**, which highlights the countries where the teams are from.")
     # Calculate total matches for each team
     team1_counts = wc_final_data_df['Team1'].value_counts()
     team2_counts = wc_final_data_df['Team2'].value_counts()
@@ -665,7 +662,6 @@ elif ui_section == "Team Battles":
         x='Team',
         y='Matches',
         color='Matches',  # Color by Matches
-        title='Total Matches Played by Each Team',
         labels={'Matches': 'Number of Matches', 'Team': 'Team'},
         text='Matches',
         template='plotly_white',  # Set template to plotly_white
@@ -738,7 +734,7 @@ elif ui_section == "Team Battles":
     st.subheader("Wins - Total No. of Wins by Each Team")
     st.markdown("""
     Here we see who’s been crushing it on the field with a chart that shows the **total wins for each team**. 
-    Want to know which countries are the real champs? We’ve got another **map** that paints the picture of 
+    Want to know which countries are the real champs? We’ve got another **world map** that paints the picture of 
     victories across the globe.
     """)
     # Function to extract numeric values for margins
@@ -778,7 +774,6 @@ elif ui_section == "Team Battles":
         y='Wins',
         labels={'Wins': 'Number of Wins', 'Team': 'Team'},
         text='Wins',
-        title='Number of Wins by Country (Teams)',
         color='Wins',
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
@@ -850,6 +845,7 @@ elif ui_section == "Team Battles":
         st.plotly_chart(fig_geo_wins, use_container_width=True)
 
     # Add the Losing Team column
+    st.subheader("Match Margins")
     st.markdown("""
     Ever wondered how big a team’s win was—whether they won by runs or wickets? Our **scatter plot** shows just that, 
     giving you an exciting way to dive into the details of every victory. Plus, there’s a handy table if you want 
@@ -869,7 +865,6 @@ elif ui_section == "Team Battles":
         plot_data,
         x='Winner',
         y='Margin Numeric',
-        title='Match Margin by Winner (Scatter Plot)',
         labels={'Margin Numeric': 'Match Margin', 'Winner': 'Winning Team'},
         color='Margin Numeric',
         hover_data={
@@ -916,19 +911,18 @@ elif ui_section == "Team Battles":
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
     fig_titles.update_layout(yaxis=dict(categoryorder='total ascending'))
+    st.subheader("T-20 Worldcup Title Holders🏆")
     st.markdown("""
-    ### 🏆 **T20 World Cup Title Holders** 
-
-    Step into the Hall of Fame of **T20 Cricket Legends**! 🌟 
-
-    Who has ruled the cricketing world in the shortest format? This section dives into the **T20 World Cup Title Holders**—the teams that have conquered the cricketing battlefield and lifted the coveted trophy. From thrilling super overs to unforgettable finals, these are the champions who have etched their names in the annals of cricketing history. 🥇🏏
-
-    🌍 **What’s Inside?**
+    Step into the Hall of Fame of **T20 Cricket Legends**! 
+                
+    Who has ruled the cricketing world in the shortest format? This section dives into the **T20 World Cup Title Holders**—the teams that have conquered the cricketing battlefield and lifted the coveted trophy. From thrilling super overs to unforgettable finals, these are the champions who have etched their names in the annals of cricketing history. 
+    
+    **What’s Inside?**
     - A **bar chart** showcasing the number of T20 titles each team has won.
-    - Hover over the bars to relive the exact dates of their epic victories. 📅
+    - Hover over the bars to relive the exact dates of their epic victories. 
     - Find out who’s leading the charge and who’s gearing up to join the elite club.
 
-    Let’s explore the kings of T20 cricket and their journeys to glory! 🚀
+    Let’s explore the kings of T20 cricket and their journeys to glory! 
     """)
 
     st.plotly_chart(fig_titles)
