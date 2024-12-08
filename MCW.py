@@ -838,6 +838,7 @@ elif ui_section == "Team Battles":
         color='Titles',
         color_continuous_scale='Viridis'  # Use Viridis palette
     )
+    fig_titles.update_layout(yaxis=dict(categoryorder='total ascending'))
     st.markdown("""
     ### 🏆 **T20 World Cup Title Holders** 
 
