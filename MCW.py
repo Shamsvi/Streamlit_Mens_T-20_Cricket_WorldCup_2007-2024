@@ -1446,7 +1446,7 @@ elif ui_section == "Forecasting the Next Champions":
 
 # Search for your favourite teams and players
 elif ui_section == "Search Magic":
-    st.subheader("Search Magic")
+    st.title("Search Magic")
     st.markdown("""
     Welcome to the ultimate search tool for cricket enthusiasts! This section is all about putting you in control to explore your favorite teams, players, and matches. Whether you’re looking to relive the glory of your team in a specific year, find the captains who led them to victory, or discover how a player has performed over the years, this is the place for you.
 
@@ -1571,7 +1571,7 @@ elif ui_section == "Search Magic":
         st.write("No matches found for the provided input.")
 
     # Player search bar, independent of the team search
-    st.markdown("##### Search for a Player")
+    st.subheader(" Search for a Player")
     player_name = st.text_input("Enter the player name:")
 
     # Check if the input player name is in the player_df DataFrame
