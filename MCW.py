@@ -2350,6 +2350,16 @@ def interactive_confusion_matrix(y_test, predictions, model_name, label_encoder)
     ax.set_ylabel("Actual Class", fontsize=12)
     plt.xticks(rotation=45)
     st.pyplot(fig)
+# Load models during app initialization
+@st.cache_resource
+def load_models_at_startup():
+    log_reg = joblib.load(BytesIO(requests.get(LOG_REG_MODEL_URL).content))
+    rf_clf = joblib.load(BytesIO(requests.get(RF_MODEL_URL).content))
+    xgb_clf = joblib.load(BytesIO(requests.get(XGB_MODEL_URL).content))
+    return log_reg, rf_clf, xgb_clf
+
+log_reg, rf_clf, xgb_clf = load_models_at_startup()
+
 
 # Modeling Section
 if ds_section == "Modeling the Game: Unveiling Predictions":
@@ -2449,6 +2459,7 @@ if ds_section == "Modeling the Game: Unveiling Predictions":
 
         best_model_name = results_df['F1-Score (%)'].idxmax()
         st.write(f"### Recommendation: The best model for this dataset is **{best_model_name}**, achieving the highest F1-Score.")
+        
 
 
     
