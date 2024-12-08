@@ -571,6 +571,83 @@ elif ui_section == "Team Battles":
     We’ve got a colorful **bar chart** that shows the total matches for every team. Want to know where your favorite 
     team has battled it out? Check out the interactive **map**, which highlights the countries where matches were played.
     """)
+
+    # Ensure Match Year is calculated
+    if 'Match Year' not in wc_final_data_df.columns:
+        wc_final_data_df['Match Year'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce').dt.year
+
+    # Function to calculate team stats
+    def calculate_team_stats(df, team_col, winner_col):
+        """Calculate participation and wins for a specific team column."""
+        participation = df.groupby(['Match Year', team_col]).size().reset_index(name='Participation')
+        wins = df[df[winner_col] == df[team_col]].groupby(['Match Year', team_col]).size().reset_index(name='Wins')
+        return pd.merge(participation, wins, how='left', on=['Match Year', team_col]).fillna(0)
+
+    # Calculate stats for Team1 and Team2
+    team1_stats = calculate_team_stats(wc_final_data_df, 'Team1', 'Winner')
+    team2_stats = calculate_team_stats(wc_final_data_df, 'Team2', 'Winner')
+
+    # Add hover text for detailed information
+    team1_stats['Hover Text'] = team1_stats.apply(
+        lambda row: f"Team: {row['Team1']}<br>Year: {row['Match Year']}<br>Participation: {row['Participation']}<br>Wins: {row['Wins']}", 
+        axis=1
+    )
+    team2_stats['Hover Text'] = team2_stats.apply(
+        lambda row: f"Team: {row['Team2']}<br>Year: {row['Match Year']}<br>Participation: {row['Participation']}<br>Wins: {row['Wins']}", 
+        axis=1
+    )
+
+    # Combined Bar and Line Plot
+    st.subheader("Head-to-Head Wins Between Teams")
+    st.markdown("""
+    Dive into the intense rivalries between Team 1 and Team 2! This section showcases the number of times one team has defeated the other in direct matchups, giving a sense of which team holds the upper hand.
+    """)
+
+    # Function to create a combined bar and line plot
+    def create_combined_plot(stats, team, colors):
+        """Create a combined bar and line plot for participation and wins."""
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=stats['Match Year'], 
+            y=stats['Participation'], 
+            name=f'{team} Participation', 
+            marker_color=colors[0],
+            hovertext=stats['Hover Text'], 
+            hoverinfo="text"
+        ))
+        fig.add_trace(go.Scatter(
+            x=stats['Match Year'], 
+            y=stats['Wins'], 
+            mode='lines+markers', 
+            name=f'{team} Wins', 
+            line=dict(color=colors[1]),
+            hovertext=stats['Hover Text'], 
+            hoverinfo="text"
+        ))
+        fig.update_layout(
+            title=f'{team} WC Participation (Bar) and Wins (Line) Over the Years',
+            xaxis_title='Match Year',
+            yaxis=dict(title='Participation'),
+            yaxis2=dict(title='Wins', overlaying='y', side='right'),
+            barmode='group',
+            hovermode='closest',
+            width=1000,
+            height=600
+        )
+        return fig
+
+    # Generate plots for Team1 and Team2
+    fig_team1 = create_combined_plot(team1_stats, 'Team 1', [px.colors.sequential.Viridis[3], px.colors.sequential.Viridis[6]])
+    fig_team2 = create_combined_plot(team2_stats, 'Team 2', [px.colors.sequential.Viridis[1], px.colors.sequential.Viridis[9]])
+
+    # Display side-by-side
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_team1, use_container_width=True)
+    with col2:
+        st.plotly_chart(fig_team2, use_container_width=True)
+
+
     # Calculate total matches for each team
     team1_counts = wc_final_data_df['Team1'].value_counts()
     team2_counts = wc_final_data_df['Team2'].value_counts()
@@ -1077,67 +1154,6 @@ elif ui_section == "Player Glory":
     
     Explore the incredible contributions of players to the T20 World Cup in this engaging section. From participation and wins across years to standout performances, we've got it all!
     """)
-
-    # Ensure Match Year is calculated
-    if 'Match Year' not in wc_final_data_df.columns:
-        wc_final_data_df['Match Year'] = pd.to_datetime(wc_final_data_df['Match Date'], errors='coerce').dt.year
-
-    # Function to calculate team stats
-    def calculate_team_stats(df, team_col, winner_col):
-        """Calculate participation and wins for a specific team column."""
-        participation = df.groupby(['Match Year', team_col]).size().reset_index(name='Participation')
-        wins = df[df[winner_col] == df[team_col]].groupby(['Match Year', team_col]).size().reset_index(name='Wins')
-        return pd.merge(participation, wins, how='left', on=['Match Year', team_col]).fillna(0)
-
-    # Calculate stats for Team1 and Team2
-    team1_stats = calculate_team_stats(wc_final_data_df, 'Team1', 'Winner')
-    team2_stats = calculate_team_stats(wc_final_data_df, 'Team2', 'Winner')
-
-    # Combined Bar and Line Plot
-    st.subheader("Head-to-Head Wins Between Teams")
-    st.markdown("""
-    Dive into the intense rivalries between Team 1 and Team 2! This section showcases the number of times one team has defeated the other in direct matchups, giving a sense of which team holds the upper hand.
-    """)
-
-    # Function to create a combined bar and line plot
-    def create_combined_plot(stats, team, colors):
-        """Create a combined bar and line plot for participation and wins."""
-        fig = go.Figure()
-        fig.add_trace(go.Bar(
-            x=stats['Match Year'], 
-            y=stats['Participation'], 
-            name=f'{team} Participation', 
-            marker_color=colors[0]
-        ))
-        fig.add_trace(go.Scatter(
-            x=stats['Match Year'], 
-            y=stats['Wins'], 
-            mode='lines', 
-            name=f'{team} Wins', 
-            line=dict(color=colors[1])
-        ))
-        fig.update_layout(
-            title=f'{team} WC Participation (Bar) and Wins (Line) Over the Years',
-            xaxis_title='Match Year',
-            yaxis=dict(title='Participation'),
-            yaxis2=dict(title='Wins', overlaying='y', side='right'),
-            barmode='group',
-            hovermode='closest',
-            width=1000,
-            height=600
-        )
-        return fig
-
-    # Generate plots for Team1 and Team2
-    fig_team1 = create_combined_plot(team1_stats, 'Team 1', [px.colors.sequential.Viridis[3], px.colors.sequential.Viridis[6]])
-    fig_team2 = create_combined_plot(team2_stats, 'Team 2', [px.colors.sequential.Viridis[1], px.colors.sequential.Viridis[9]])
-
-    # Display side-by-side
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig_team1, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig_team2, use_container_width=True)
 
     # Player Participation Trends
     st.subheader("Player Participation Trends")
