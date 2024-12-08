@@ -1139,7 +1139,7 @@ elif ui_section == "Player Glory":
     # Player Participation Trends
     st.subheader("Player Participation Trends")
     st.markdown("""
-    Watch how teams have been represented by their players over the years. This section highlights how many players from each country participated in different tournaments, giving a sense of their consistent presence in the competition.
+    Watch how teams have been represented by their total number of players over the years. This section highlights how many players from each country participated in different tournaments, giving a sense of their consistent presence in the competition.
     """)
 
     # Ensure all years and teams are represented
@@ -1151,18 +1151,36 @@ elif ui_section == "Player Glory":
     player_data = pd.merge(grid, players_df.groupby(['Year', 'Team']).size().reset_index(name='Players'), how='left')
     player_data['Players'] = player_data['Players'].fillna(0)
 
-    # Line chart for participation trends
-    fig_players = px.line(
-        player_data, 
-        x='Year', 
-        y='Players', 
-        color='Team', 
-        title='Player Participation Trends Over the Years by Country',
-        labels={'Players': 'Number of Players', 'Year': 'Year'},
+    # Summarize data by team
+    total_players_by_team = player_data.groupby('Team')['Players'].sum().reset_index()
+    total_players_by_team = total_players_by_team.sort_values(by='Players', ascending=False)
+
+    # Bar chart for total player participation by country
+    fig_players_bar = px.bar(
+        total_players_by_team, 
+        x='Players', 
+        y='Team', 
+        orientation='h',  # Horizontal bar chart
+        title='Total Player Participation by Country in T20 World Cups',
+        labels={'Players': 'Number of Players', 'Team': 'Country'},
+        text='Players',  # Display the number of players on the bars
         template='plotly_white',
-        color_discrete_sequence=px.colors.sequential.Viridis
+        color='Players',
+        color_continuous_scale=px.colors.sequential.Viridis
     )
-    st.plotly_chart(fig_players, use_container_width=True)
+
+    # Update layout for better visualization
+    fig_players_bar.update_traces(textposition='outside')
+    fig_players_bar.update_layout(
+        xaxis_title='Number of Players',
+        yaxis_title='Country',
+        width=800,
+        height=600,
+        yaxis=dict(categoryorder='total ascending')  # Sort by total players
+    )
+
+    st.plotly_chart(fig_players_bar, use_container_width=True)
+
 
     # Legends of Longevity
     st.subheader("Legends of Longevity")
@@ -1858,6 +1876,9 @@ elif ds_section == "Cricket Stats":
         template="plotly_white",
         color_discrete_sequence=px.colors.sequential.Viridis
     )
+    fig_margin_runs.update_layout(
+    xaxis={'categoryorder': 'total descending'}
+    )
     fig_margin_runs.update_traces(marker_line_color="black", marker_line_width=1.5)
     fig_margin_runs.update_layout(xaxis_title="Margin (Runs)", yaxis_title="Frequency", width=600, height=400)
 
@@ -1871,8 +1892,13 @@ elif ds_section == "Cricket Stats":
         template="plotly_white",
         color_discrete_sequence=px.colors.sequential.Viridis
     )
+    
     fig_margin_wickets.update_traces(marker_line_color="black", marker_line_width=1.5)
     fig_margin_wickets.update_layout(xaxis_title="Margin (Wickets)", yaxis_title="Frequency", width=600, height=400)
+    
+    fig_margin_wickets.update_layout(
+    xaxis={'categoryorder': 'total descending'}
+    )
 
     col1, col2 = st.columns(2)
     with col1:
@@ -1890,7 +1916,7 @@ elif ds_section == "Cricket Stats":
 
     # Team 1 Avg Batting Ranking
     fig_batting_team1 = px.histogram(
-        wc_final_data_df.sort_values(by="Team1 Avg Batting Ranking", ascending=False),
+        wc_final_data_df,
         x="Team1 Avg Batting Ranking",
         nbins=20,
         title="Distribution of Team 1 Avg Batting Ranking",
@@ -1898,8 +1924,15 @@ elif ds_section == "Cricket Stats":
         template="plotly_white",
         color_discrete_sequence=px.colors.sequential.Viridis
     )
+
     fig_batting_team1.update_traces(marker_line_color="black", marker_line_width=1.5)
-    fig_batting_team1.update_layout(xaxis_title="Batting Ranking (Team 1)", yaxis_title="Frequency", width=600, height=400)
+    fig_batting_team1.update_layout(
+        xaxis_title="Batting Ranking (Team 1)",
+        yaxis_title="Frequency",
+        width=600,
+        height=400
+)
+
 
     # Team 2 Avg Batting Ranking
     fig_batting_team2 = px.histogram(
